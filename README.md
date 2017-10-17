@@ -34,18 +34,18 @@ Also see [https://www.tensorflow.org/install/install_linux](https://www.tensorfl
     
 ### Install Tensorflow models and object detection protocols
     $ git clone https://github.com/tensorflow/models.git tensorflow_models
-    $ cd tensorflow_models
+    $ push tensorflow_models/research/
     $ protoc object_detection/protos/*.proto --python_out=.
-    $ cd .. 
+    $ popd 
 
 ### Add libraries to PYTHONPATH
 
 When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
 This can be done by running the following from tensorflow_models :
 
-    $ cd tensorflow_models
+    $ pushd tensorflow_models/research/
     $ export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
-    $ cd ..
+    $ popd
     
 ### Generate the TFRecord files
 
