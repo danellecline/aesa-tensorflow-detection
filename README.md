@@ -5,7 +5,8 @@ Code for testing Tensorflow detection API on on AESA data
 ## Prerequisites
  
 - Python version  3.5, on a Mac OSX download and install from here:
- https://www.python.org/downloads/mac-osx/ 
+ https://www.python.org/downloads/mac-osx/
+- [Bazel](https://docs.bazel.build/versions/master/install.html)
 
 ## Running
 
