@@ -62,7 +62,7 @@ Insert the correct paths for the training/test data in PATH_TO_BE_CONFIGURED
 
 ### Train the model 
      
-    $ python tensorflow_models/object_detection/train.py \
+    $ python tensorflow_models/research/object_detection/train.py \
     --logtostderr \
     --pipeline_config_path=`pwd`/models/faster_rcnn_resnet50_coco/pipeline.config \ 
     --train_dir=`pwd`/models/faster_rcnn_resnet50_coco/checkpoints \ 
@@ -70,14 +70,14 @@ Insert the correct paths for the training/test data in PATH_TO_BE_CONFIGURED
       
 ### Test the model 
 
-    $ python tensorflow_models/object_detection/eval.py \
+    $ python tensorflow_models/research/object_detection/eval.py \
     --logtostderr \
     --pipeline_config_path=`pwd`/models/faster_rcnn_resnet50_coco/pipeline.config \ 
     --checkpoint_dir=`pwd`/models/checkpoints/ \
     --eval_dir=PATH_TO_EVAL_DIR
 
 ## Bug fix
-add to tensorflow_models/object_detection/core/preprocessor.py 
+add to tensorflow_models/research/object_detection/core/preprocessor.py 
 mean = list(mean) before lines 1474.
 https://www.bountysource.com/issues/48005318-bug-change-protobuf-to-list-in-object-detection-api
 
