@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import re
+
 __author__    = 'Danelle Cline'
 __copyright__ = '2017'
 __license__   = 'GPL v3'
@@ -14,19 +16,29 @@ to this new coordinate system
 @status: production
 @license: GPL
 '''
-
-from matplotlib import pyplot as plt
-import os 
+ 
 import math
 import numpy
-import pandas as pd
-import sys
+import pandas as pd 
+from collections import defaultdict         
 from collections import namedtuple 
 import argparse
-import subprocess
-import util
-import cv2
-import numpy as np
+import subprocess 
+import cv2 
+import hashlib 
+import io
+import os 
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models/'))
+ 
+import tensorflow as tf
+
+from PIL import Image
+
+from object_detection.utils import dataset_util
+from object_detection.utils import label_map_util
+
 
 def process_command_line():
     from argparse import RawTextHelpFormatter
@@ -47,19 +59,91 @@ def process_command_line():
     args = parser.parse_args()
     return args
 
-def get_dims(image):
-    # get the height and width of a tile
-    cmd = 'identify %s' % (image)
-    subproc = subprocess.Popen(cmd, env=os.environ, shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                               stdout=subprocess.PIPE)
-    out, err = subproc.communicate()
-    f = out.rstrip()
-    a = f.split(' ')[3]
-    size = a.split('+')[0]
-    width = int(size.split('x')[0])  # /4
-    height = int(size.split('x')[1])  # /4
-    return height, width
+def dict_to_tf_example(data,
+                       dataset_directory,
+                       label_map_dict,
+                       labels,
+                       image_subdirectory='imgs'):
+  """Convert csv derived dict to tf.Example proto.
 
+  Notice that this function normalizes the bounding box coordinates provided
+  by the raw data.
+
+  Args:
+    data: dict holding fields for a single image
+    dataset_directory: Path to root directory holding dataset
+    label_map_dict: A map from string label names to integers ids. 
+    labels: list of labels to include in the record
+    image_subdirectory: String specifying subdirectory within the
+      PASCAL dataset directory holding the actual image data.
+
+  Returns:
+    example: The converted tf.Example.
+
+  Raises:
+    ValueError: if the image pointed to by data['filename'] is not a valid JPEG
+  """
+  img_path = os.path.join(data['folder'], image_subdirectory, data['filename'])
+  full_path = os.path.join(dataset_directory, img_path)
+  with tf.gfile.GFile(full_path, 'rb') as fid:
+    encoded_png = fid.read()
+  encoded_png_io = io.BytesIO(encoded_png)
+  image = Image.open(encoded_png_io)
+  if image.format != 'PNG':
+    raise ValueError('Image format not PNG')
+  key = hashlib.sha256(encoded_png).hexdigest()
+
+  width = int(data['size']['width'])
+  height = int(data['size']['height'])
+
+  xmin = []
+  ymin = []
+  xmax = []
+  ymax = []
+  classes = []
+  classes_text = []
+  truncated = []
+  poses = []
+  difficult_obj = []
+  num_objs = 0
+
+  for obj in data['object']:
+    if labels and obj['name'] not in labels:
+        continue
+    num_objs += 1
+    difficult = bool(int(obj['difficult']))
+    difficult_obj.append(int(difficult))
+    xmin.append(float(obj['bndbox']['xmin']) / width)
+    ymin.append(float(obj['bndbox']['ymin']) / height)
+    xmax.append(float(obj['bndbox']['xmax']) / width)
+    ymax.append(float(obj['bndbox']['ymax']) / height)
+    classes_text.append(obj['name'].encode('utf8'))
+    classes.append(label_map_dict[obj['name']])
+    truncated.append(int(obj['truncated']))
+    poses.append(obj['pose'].encode('utf8'))
+
+  example = tf.train.Example(features=tf.train.Features(feature={
+      'image/height': dataset_util.int64_feature(height),
+      'image/width': dataset_util.int64_feature(width),
+      'image/filename': dataset_util.bytes_feature(
+          data['filename'].encode('utf8')),
+      'image/source_id': dataset_util.bytes_feature(
+          data['filename'].encode('utf8')),
+      'image/key/sha256': dataset_util.bytes_feature(key.encode('utf8')),
+      'image/encoded': dataset_util.bytes_feature(encoded_png),
+      'image/format': dataset_util.bytes_feature('png'.encode('utf8')),
+      'image/object/bbox/xmin': dataset_util.float_list_feature(xmin),
+      'image/object/bbox/xmax': dataset_util.float_list_feature(xmax),
+      'image/object/bbox/ymin': dataset_util.float_list_feature(ymin),
+      'image/object/bbox/ymax': dataset_util.float_list_feature(ymax),
+      'image/object/class/text': dataset_util.bytes_list_feature(classes_text),
+      'image/object/class/label': dataset_util.int64_list_feature(classes),
+      'image/object/truncated': dataset_util.int64_list_feature(truncated),
+      'image/object/view': dataset_util.bytes_list_feature(poses),
+  }))
+  return example, num_objs
+ 
+ 
 # finds object
 def find_object(image_bin, image_color):
  
@@ -194,23 +278,62 @@ for i in range(4):
             # adjust the actual bounding box
             tlx += x; tly += y; brx = tlx + w; bry = tly + h;
             display_annotation(annotation, brx, bry, img, tlx, tly)
-        
-        
-    print('done')
+         
     cv2.destroyAllWindows() 
-
-
+    obj = {}
+    obj['name'] = a.category
+    obj['difficult'] = 0
+    obj['bndbox']['truncated'] = 0
+    obj['bndbox'] = {}
+    obj['bndbox']['xmin'] = tlx
+    obj['bndbox']['ymin'] = tly
+    obj['bndbox']['xmax'] = brx
+    obj['bndbox']['xmax'] = bry  
+    obj['bndbox']['pose'] = 'Unspecified' 
+    print('done')
+    return obj
+ 
 def display_annotation(annotation, brx, bry, img, tlx, tly):
     cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
     cv2.imshow("Annotation", img) 
 
+def get_dims(image):
+  """
+  get the height and width of a tile
+  :param image: the image file
+  :return: height, width
+  """
+  cmd = '/usr/local/bin/identify "{0}"'.format(image)
+  subproc = subprocess.Popen(cmd, env=os.environ, shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
+  out, err = subproc.communicate()
+  # get image height and width of raw tile
+  p = re.compile(r'(?P<width>\d+)x(?P<height>\d+)')
+  match = re.search(pattern=p, string=str(out))
+  if (match):
+      width = int(match.group("width"))
+      height = int(match.group("height"))
+      return height, width
+
+  raise Exception('Cannot find height/width for image {0}'.format(image))
+
+
+def ensure_dir(d):
+  """
+  ensures a directory exists; creates it if it does not
+  :param fname:
+  :return:
+  """
+  if not os.path.exists(d):
+    os.makedirs(d)
+
 
 if __name__ == '__main__':
   args = process_command_line()
 
-  util.ensure_dir(args.out_dir)
+  ensure_dir(args.out_dir)
   failed_file = open(os.path.join(args.out_dir, 'failed_crops.txt'), 'w')
 
   aesa_annotation = namedtuple("Annotation", ["category", "centerx", "centery", "mtype", "measurement", "index"])
@@ -228,7 +351,7 @@ if __name__ == '__main__':
     actual_height = None
     converted = {}
 
-    util.ensure_dir(args.out_dir)
+    ensure_dir(args.out_dir)
 
     for index, row in df.iterrows():
 
@@ -245,13 +368,14 @@ if __name__ == '__main__':
 
         # get image height and width of raw tile; only do this once assuming all times are the same
         if not width and not height:
-            height, width = util.get_dims(filename)
+            height, width = get_dims(filename)
             # create tiled grid closest to 960x540
             n_tilesh = math.ceil(height / TARGET_TILE_HEIGHT)
             n_tilesw = math.ceil(width / TARGET_TILE_WIDTH)
 
+        # if haven't converted tiles to smaller grid, convert
         if filename not in converted.keys():
-            converted[filename] = 1
+            converted[filename]['object'] = defaultdict(list)
             head, tail = os.path.split(filename)
             stem = tail.split('.')[0]
             # http://www.imagemagick.org/Usage/crop/#crop_equal
@@ -260,14 +384,23 @@ if __name__ == '__main__':
             image_file = '{0}/{1}_{2:02}.jpg'.format(args.in_dir, stem, 0)
 
             if not actual_height and not actual_width:
-                actual_height, actual_width = util.get_dims(image_file)
+                actual_height, actual_width = get_dims(image_file)
 
         print('Processing row {0} filename {1} annotation {2}'.format(index, filename, row['Category']))
         a = aesa_annotation(category=row['Category'],centerx=row['CentreX'], centery=row['CentreY'],
                             measurement=row['Measurement'], mtype=row['Type'],
                             index=index)
-        convert_annotation(filename, args.in_dir, a, height, width, actual_height, actual_width)
+        obj = convert_annotation(filename, args.in_dir, a, height, width, actual_height, actual_width)
+        converted[filename]['object'].append(obj)
 
+        '''map these into one class Ophiuroidea
+        OphiuroideaDiskD
+        OphiuroideaR'''
+        
+        '''Polycheata1 should be Polychaete1 and both are in group Polychaeta '''
+        
+        '''Tunicate2 should be Tunicata2'''
+        
       except Exception as ex:
           failed_file.write("Error cropping annotation row {0} filename {1} \n".format(index, filename))
 
@@ -276,3 +409,9 @@ if __name__ == '__main__':
 
   print('Done')
 
+
+def crop(tmpdir, image_path):
+  path, filename = os.path.split(image_path)
+  thumbnail_file = os.path.join(tmpdir, 'thumb_' + filename)
+  os.system('convert "%s" -thumbnail 50x50 -unsharp 0x.5 "%s"' % (image_path, thumbnail_file))
+  return thumbnail_file
