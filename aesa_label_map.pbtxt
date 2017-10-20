@@ -68,257 +68,257 @@ item {
 }
 item {
   id: 18
-  name: 'Cnidaria11
+  name: 'Cnidaria11'
 } 
 item {
   id: 19
-  name: 'Cnidaria12
+  name: 'Cnidaria12'
 } 
 item {
   id: 20
-  name: 'Cnidaria13
+  name: 'Cnidaria13'
 }  
 item {
   id: 21
-  name: 'Cnidaria14
+  name: 'Cnidaria14'
 } 
 item {
   id: 22
-  name: 'Cnidaria15
+  name: 'Cnidaria15'
 } 
 item {
   id: 23
-  name: 'Cnidaria16
+  name: 'Cnidaria16'
 }  
 item {
   id: 24
-  name: 'Cnidaria17
+  name: 'Cnidaria17'
 }  
 item {
   id: 25
-  name: 'Cnidaria18
+  name: 'Cnidaria18'
 }  
 item {
   id: 26
-  name: 'Cnidaria19
+  name: 'Cnidaria19'
 } 
 item {
   id: 27
-  name: 'Cnidaria2
+  name: 'Cnidaria2'
 }  
 item {
   id: 28
-  name: 'Cnidaria20
+  name: 'Cnidaria20'
 }
 item {
   id: 29
-  name: 'Cnidaria21
+  name: 'Cnidaria21'
 }  
 item {
   id: 30
-  name: 'Cnidaria3
+  name: 'Cnidaria3'
 }  
 item {
   id: 31
-  name: 'Cnidaria4
+  name: 'Cnidaria4'
 }         
 item {
   id: 32
-  name: 'Cnidaria5
+  name: 'Cnidaria5'
 }       
 item {
   id: 33
-  name: 'Cnidaria6
+  name: 'Cnidaria6'
 }      
 item {
   id: 34
-  name: 'Cnidaria7
+  name: 'Cnidaria7'
 }      
 item {
   id: 35
-  name: 'Cnidaria8
+  name: 'Cnidaria8'
 } 
 item {
   id: 36
-  name: 'Cnidaria9
+  name: 'Cnidaria9'
 }      
 item {
   id: 37
-  name: 'Crinoid1
+  name: 'Crinoid1'
 }       
 item {
   id: 38
-  name: 'Crinoid2
+  name: 'Crinoid2'
 }       
 item {
   id: 39
-  name: 'Deima
+  name: 'Deima'
 }       
 item {
   id: 40
-  name: 'ECHIURA
+  name: 'ECHIURA'
 } 
 item {
   id: 41
-  name: 'Enypniasteseximia
+  name: 'Enypniasteseximia'
 }
 item {
   id: 42
-  name: 'FORAMINIFERA
+  name: 'FORAMINIFERA'
 }
 item {
   id: 43
-  name: 'HOLOTHURIAN
+  name: 'HOLOTHURIAN'
 }
 item {
   id: 44
-  name: 'Holothuroid3
+  name: 'Holothuroid3'
 }
 item {
   id: 45
-  name: 'Holothuroid4
+  name: 'Holothuroid4'
 } 
 item {
   id: 46
-  name: 'Holothuroid5
+  name: 'Holothuroid5'
 } 
 item {
   id: 47
-  name: 'Holothuroid6
+  name: 'Holothuroid6'
 } 
 item {
   id: 48
-  name: 'MEDUSA
+  name: 'MEDUSA'
 }  
 item {
   id: 49
-  name: 'Mesothuria
+  name: 'Mesothuria'
 } 
 item {
   id: 50
-  name: 'Munnopsida
+  name: 'Munnopsida'
 } 
 item {
   id: 51
-  name: 'Oneirophanta
+  name: 'Oneirophanta'
 }  
 item {
   id: 52
-  name: 'Ophiuroidea
+  name: 'Ophiuroidea'
 } 
 item {
   id: 53
-  name: 'PORIFERA
+  name: 'PORIFERA'
 } 
 item {
   id: 54
-  name: 'Paelopatides
+  name: 'Paelopatides'
 } 
 item {
   id: 55
-  name: 'Paroriza
+  name: 'Paroriza'
 } 
 item {
   id: 56
-  name: 'Peniagone
+  name: 'Peniagone'
 } 
 item {
   id: 57
-  name: 'Peniagonesp2
+  name: 'Peniagonesp2'
 }  
 item {
   id: 58
-  name: 'Platyctenida
+  name: 'Platyctenida'
 } 
 item {
   id: 59
-  name: 'Polychaete1
+  name: 'Polychaete1'
 } 
 item {
   id: 60
-  name: 'Polynoid1
+  name: 'Polynoid1'
 }   
 item {
   id: 61
-  name: 'Polynoid2
+  name: 'Polynoid2'
 } 
 item {
   id: 62
-  name: 'Pseudostichopusaemulatus
+  name: 'Pseudostichopusaemulatus'
 }  
 item {
   id: 63
-  name: 'Pseudostichopusvillosus
+  name: 'Pseudostichopusvillosus'
 } 
 item {
   id: 64
-  name: 'Psychropoteslongicauda
+  name: 'Psychropoteslongicauda'
 } 
 item {
   id: 65
-  name: 'Pycnogonida
+  name: 'Pycnogonida'
 } 
 item {
   id: 66
-  name: 'Rayedmound
+  name: 'Rayedmound'
 } 
 item {
   id: 67
-  name: 'Squatlobster
+  name: 'Squatlobster'
 } 
 item {
   id: 68
-  name: 'Stalkedtunicate
+  name: 'Stalkedtunicate'
 }  
 item {
   id: 69
-  name: 'Tunicata
+  name: 'Tunicata'
 } 
 item {
   id: 70
-  name: 'Tunicata2
+  name: 'Tunicata2'
 } 
 item {
   id: 71
-  name: 'UNKNOWN
+  name: 'UNKNOWN'
 } 
 item {
   id: 72
-  name: 'Umbellula
+  name: 'Umbellula'
 } 
 item {
   id: 73
-  name: 'Umbellula1
+  name: 'Umbellula1'
 } 
 item {
   id: 74
-  name: 'Umbellula3
+  name: 'Umbellula3'
 } 
 item {
   id: 75
-  name: 'Unknown
+  name: 'Unknown'
 } 
 item {
   id: 76
-  name: 'UnknownAC
+  name: 'UnknownAC'
 } 
 item {
   id: 77
-  name: 'UnknownAG
+  name: 'UnknownAG'
 } 
 item {
   id: 78
-  name: 'UnknownAH
+  name: 'UnknownAH'
 } 
 item {
   id: 79
-  name: 'UnknownC
+  name: 'UnknownC'
 } 
 item {
   id: 80
-  name: 'UnknownX
+  name: 'UnknownX'
 } 
 item {
   id: 81
-  name: 'UnknownZ
+  name: 'UnknownZ'
 }
