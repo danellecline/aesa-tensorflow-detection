@@ -30,30 +30,36 @@ import io
 import os 
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models/'))
- 
 import tensorflow as tf
+sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models', 'research'))
 
 from PIL import Image
 
 from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
-
 def process_command_line():
     from argparse import RawTextHelpFormatter
 
     examples = 'Examples:' + '\n\n'
-    examples += sys.argv[0] + """--in_dir /Volumes/ScratchDrive/AESA/M56 tiles/raw/ --by_category
-              --out_dir /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/cropped_images
-              --annotation_file /Volumes/ScratchDrive/AESA/M56_Annotations_v10.csv \n"""
+    examples += sys.argv[0] + """--tile_dir /Volumes/ScratchDrive/AESA/M56 tiles/raw/ --collection M56
+              --labels /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/aesa_label_map.pbtx \n
+              --out_path /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/ \n
+              --annotation_file /Volumes/ScratchDrive/AESA/M56_Annotations_v13.csv \n"""
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                      description='Extract cropped images from tiles and associated annotations',
                                      epilog=examples)
-    group = parser.add_mutually_exclusive_group()
-    parser.add_argument('--in_dir', type=str, required=True, default='/Volumes/ScratchDrive/AESA/M535455_tiles/', help="Path to folders of raw tiled images.")
-    parser.add_argument('--out_dir', type=str, required=False, default=os.path.join(os.getcwd(), 'data','cropped_images'), help="Path to store cropped images.")
-    parser.add_argument('--annotation_file', type=str, required=True, default='/Volumes/ScratchDrive/AESA/M56_Annotations_v10.csv', help="Path to annotation file.")
+    parser.add_argument('-d', '--data_dir',action='store', help='Root directory to raw dataset', default=os.path.join(os.getcwd(),'data'), required=False)
+    parser.add_argument('-c', '--collection', action='store', help='Name of the collection. Also the subdirectory name '
+                                                                   'for the generated images', default='M56',  required=False)
+    parser.add_argument('-o', '--out_path', action='store', help='Path to output TFRecord', default=os.path.join(os.getcwd(),'data'), required=False)
+    parser.add_argument('-l', '--label_map_path', action='store', help='Path to label map proto', default=os.path.join(os.getcwd(), 'aesa_label_map.pbtxt', ), required=False)
+    parser.add_argument('--labels', action='store',
+                        help='List of space separated labels to load. Must be in the label map proto', nargs='*',
+                        required=False)
+    parser.add_argument('--tile_dir', type=str, required=False, default='/Volumes/ScratchDrive/AESA/M535455_tiles/', help="Path to folders of raw tiled images.")
+
+    parser.add_argument('--annotation_file', type=str, required=False, default=os.path.join(os.getcwd(), 'data/annotations/M56_Annotations_v13.csv'), help="Path to annotation file.")
     parser.add_argument('--file_format', default='M56_10441297_', type=str, required=False, help="Alternative file prefix to use for calculating the associated frame the annotation is from, e.g. M56_10441297_%d.jpg'")
     parser.add_argument('--strip_trailing_dot', action='store_true', required=False, help="Strip trailing .'")
     args = parser.parse_args()
@@ -74,8 +80,8 @@ def dict_to_tf_example(data,
     dataset_directory: Path to root directory holding dataset
     label_map_dict: A map from string label names to integers ids. 
     labels: list of labels to include in the record
-    image_subdirectory: String specifying subdirectory within the
-      PASCAL dataset directory holding the actual image data.
+    image_subdirectory: String specifying subdirectory within the 
+    dataset directory holding the actual image data.
 
   Returns:
     example: The converted tf.Example.
@@ -142,9 +148,7 @@ def dict_to_tf_example(data,
       'image/object/view': dataset_util.bytes_list_feature(poses),
   }))
   return example, num_objs
- 
- 
-# finds object
+  
 def find_object(image_bin, image_color):
  
     invert = cv2.bitwise_not(image_bin);  
@@ -273,13 +277,16 @@ for i in range(4):
                 found, x, y, w, h = find_object(th, crop_img)
                 if found:
                     break;
-         
-        if found:
-            # adjust the actual bounding box
-            tlx += x; tly += y; brx = tlx + w; bry = tly + h;
-            display_annotation(annotation, brx, bry, img, tlx, tly)
-         
+                    
+    if found:
+        # adjust the actual bounding box with new localized bounding box coordinates
+        tlx += x;
+        tly += y;
+        brx = tlx + w;
+        bry = tly + h;
+
     cv2.destroyAllWindows() 
+    display_annotation(annotation, brx, bry, img, tlx, tly)
     obj = {}
     obj['name'] = a.category
     obj['difficult'] = 0
@@ -291,7 +298,7 @@ for i in range(4):
     obj['bndbox']['xmax'] = bry  
     obj['bndbox']['pose'] = 'Unspecified' 
     print('done')
-    return obj
+    return obj 
  
 def display_annotation(annotation, brx, bry, img, tlx, tly):
     cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
@@ -318,7 +325,25 @@ def get_dims(image):
       return height, width
 
   raise Exception('Cannot find height/width for image {0}'.format(image))
+ 
+def correct(annotation):
+    '''
+    Correct annotation categories
+    :param annotation: 
+    :return: corrected annotation
+    '''
+    
+    if 'OphiuroideaDiskD' in annotation.category or 'OphiuroideaR' in annotation.category:
+        annotation.category = 'Ophiuroidea' 
+        
+    if 'Tunicate2' in annotation.category:
+        annotation.category = 'Tunicata2'
 
+    if 'Polycheata1' in annotation.category:
+        annotation.category = 'Polychaete1' 
+        # annotation.group = 'Polychaeta' 
+        
+    return annotation
 
 def ensure_dir(d):
   """
@@ -329,13 +354,15 @@ def ensure_dir(d):
   if not os.path.exists(d):
     os.makedirs(d)
 
-
 if __name__ == '__main__':
   args = process_command_line()
 
-  ensure_dir(args.out_dir)
-  failed_file = open(os.path.join(args.out_dir, 'failed_crops.txt'), 'w')
-
+  ensure_dir(args.data_dir)
+  failed_file = open(os.path.join(args.data_dir, 'failed_crops.txt'), 'w')
+  writer = tf.python_io.TFRecordWriter(args.data_dir)
+  png_dir = os.path.join(args.data_dir, 'imgs')
+  ensure_dir(png_dir)
+  label_map_dict = label_map_util.get_label_map_dict(args.label_map_path)
   aesa_annotation = namedtuple("Annotation", ["category", "centerx", "centery", "mtype", "measurement", "index"])
 
   try:
@@ -376,12 +403,13 @@ if __name__ == '__main__':
         # if haven't converted tiles to smaller grid, convert
         if filename not in converted.keys():
             converted[filename]['object'] = defaultdict(list)
+            converted[filename]['folder'] = 'M56'
             head, tail = os.path.split(filename)
             stem = tail.split('.')[0]
             # http://www.imagemagick.org/Usage/crop/#crop_equal
-            os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.jpg"'.
-                  format(filename, n_tilesw, n_tilesh, args.in_dir, stem));
-            image_file = '{0}/{1}_{2:02}.jpg'.format(args.in_dir, stem, 0)
+            os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.
+                  format(filename, n_tilesw, n_tilesh, png_dir, stem));
+            image_file = '{0}/{1}_{2:02}.png'.format(png_dir, stem, 0)
 
             if not actual_height and not actual_width:
                 actual_height, actual_width = get_dims(image_file)
@@ -390,28 +418,23 @@ if __name__ == '__main__':
         a = aesa_annotation(category=row['Category'],centerx=row['CentreX'], centery=row['CentreY'],
                             measurement=row['Measurement'], mtype=row['Type'],
                             index=index)
+        a = correct(a)
         obj = convert_annotation(filename, args.in_dir, a, height, width, actual_height, actual_width)
         converted[filename]['object'].append(obj)
-
-        '''map these into one class Ophiuroidea
-        OphiuroideaDiskD
-        OphiuroideaR'''
-        
-        '''Polycheata1 should be Polychaete1 and both are in group Polychaeta '''
-        
-        '''Tunicate2 should be Tunicata2'''
         
       except Exception as ex:
           failed_file.write("Error cropping annotation row {0} filename {1} \n".format(index, filename))
+
+    ttl_objs = 0
+    for index, data in converted:
+        tf_example, num_objs = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
+        if tf_example:
+            ttl_objs += num_objs
+            writer.write(tf_example.SerializeToString())
+        else:
+            print('No objects found in {0}'.format(tf_example))
 
   except Exception as ex:
       print(ex)
 
   print('Done')
-
-
-def crop(tmpdir, image_path):
-  path, filename = os.path.split(image_path)
-  thumbnail_file = os.path.join(tmpdir, 'thumb_' + filename)
-  os.system('convert "%s" -thumbnail 50x50 -unsharp 0x.5 "%s"' % (image_path, thumbnail_file))
-  return thumbnail_file
