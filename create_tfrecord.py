@@ -22,7 +22,7 @@ import numpy
 import pandas as pd
 from xml.dom.minidom import parseString
 import shutil
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from collections import defaultdict         
 from collections import namedtuple
 import argparse
@@ -45,9 +45,10 @@ def process_command_line():
 
     examples = 'Examples:' + '\n\n'
     examples += sys.argv[0] + """--tile_dir /Volumes/ScratchDrive/AESA/M56 tiles/raw/ --collection M56
-              --labels /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/aesa_label_map.pbtx \n
+              --labels /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/aesa_k5_label_map.pbtx \n
               --out_path /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/ \n
               --data_dir /Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/data/ \n
+              --group_file /Volumes/ScratchDrive/AESA/hierarchy_group_k5.csv \n
               --annotation_file /Volumes/ScratchDrive/AESA/M56_Annotations_v13.csv \n"""
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                      description='Extract cropped images from tiles and associated annotations',
@@ -56,13 +57,14 @@ def process_command_line():
     parser.add_argument('-c', '--collection', action='store', help='Name of the collection. Also the subdirectory name '
                                                                    'for the generated images', default='M56',  required=False)
     parser.add_argument('-o', '--out_path', action='store', help='Path to output TFRecord', default=os.path.join(os.getcwd(), 'data', 'M56_test.record'), required=False)
-    parser.add_argument('-l', '--label_map_path', action='store', help='Path to label map proto', default=os.path.join(os.getcwd(), 'aesa_label_map.pbtxt', ), required=False)
+    parser.add_argument('-l', '--label_map_path', action='store', help='Path to label map proto', default=os.path.join(os.getcwd(), 'aesa_k5_label_map.pbtxt', ), required=False)
     parser.add_argument('--labels', action='store',
                         help='List of space separated labels to load. Must be in the label map proto', nargs='*',
                         required=False)
     parser.add_argument('--tile_dir', type=str, required=False, default='/Volumes/ScratchDrive/AESA/M56 tiles/raw/', help="Path to folders of raw tiled images.")
 
     parser.add_argument('--annotation_file', type=str, required=False, default=os.path.join(os.getcwd(), 'data/annotations/M56_Annotations_v13.csv'), help="Path to annotation file.")
+    parser.add_argument('--group_file', type=str, required=False, default=os.path.join(os.getcwd(), 'data/annotations/hierarchy_group_k5.csv'), help="Path to annotation group file.")
     parser.add_argument('--file_format', default='M56_10441297_', type=str, required=False, help="Alternative file prefix to use for calculating the associated frame the annotation is from, e.g. M56_10441297_%d.jpg'")
     parser.add_argument('--strip_trailing_dot', action='store_true', required=False, help="Strip trailing .'")
     args = parser.parse_args()
@@ -328,7 +330,7 @@ def get_dims(image):
       return height, width
 
   raise Exception('Cannot find height/width for image {0}'.format(image))
- 
+
 def correct(annotation):
     '''
     Correct annotation categories
@@ -371,6 +373,16 @@ if __name__ == '__main__':
   try:
     print('Parsing ' + args.annotation_file)
     df = pd.read_csv(args.annotation_file, sep=',')
+    print('Parsing ' + args.group_file)
+    df_group = pd.read_csv(args.group_file, sep=',')
+    group_map = {}
+    for index,row in df_group.iterrows():
+        if numpy.isnan(float(row['coarse_class'])):
+            print('Category {0} does not have a group'.format(row['category']))
+        else:
+            print('Grouping category {0} as GROUP{1}'.format(row['category'], int(row['coarse_class'])))
+            group_map[row['category']] = 'GROUP{:d}'.format(int(row['coarse_class']))
+
     width = None
     height = None
     TARGET_TILE_WIDTH = 960
@@ -383,14 +395,16 @@ if __name__ == '__main__':
     annotation_dict = {}
 
     for index, row in df.iterrows():
-
       try:
+        #if index > 1:
+        #  break;
         f = row['FileName'] 
         if args.file_format:
           filename = os.path.join(args.tile_dir, '{0}{1}.jpg'.format(args.file_format, f))
         else:
           filename = os.path.join(args.tile_dir, f)
 
+        #filename = '{0}/data/{1}'.format(os.getcwd(), 'M56_10441297_12987348614060.jpg' )
         if not os.path.exists(filename):
             failed_file.writelines(filename)
             continue
@@ -404,6 +418,9 @@ if __name__ == '__main__':
 
         head, tail = os.path.split(filename)
         key = tail.split('.')[0]
+
+        if row['Category'].upper() not in group_map.keys():
+            continue
 
         # if haven't converted tiles to smaller grid, convert
         if key not in frame_dict.keys():
@@ -420,7 +437,9 @@ if __name__ == '__main__':
         a = aesa_annotation(category=row['Category'],centerx=row['CentreX'], centery=row['CentreY'],
                             measurement=row['Measurement'], mtype=row['Type'],
                             index=index)
+
         a = correct(a)
+        a = a._replace(category=group_map[a.category.upper()])
         obj, filename = convert_annotation(filename, png_dir, a, height, width, actual_height, actual_width)
         head, tail = os.path.split(filename)
         key = tail.split('.')[0]
