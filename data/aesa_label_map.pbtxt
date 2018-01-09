@@ -1,0 +1,324 @@
+item {
+  id: 1
+  name: 'ANNELIDA'
+} 
+item {
+  id: 2
+  name: 'Amperima'
+} 
+item {
+  id: 3
+  name: 'Asteroid1'
+} 
+item {
+  id: 4
+  name: 'Asteroid3'
+} 
+item {
+  id: 5
+  name: 'Asteroid4'
+} 
+item {
+  id: 6
+  name: 'Asteroid5'
+}  
+item {
+  id: 7
+  name: 'Benthodyteslingua'
+}  
+item {
+  id: 8
+  name: 'Benthodytessordida'
+}    
+item {
+  id: 9
+  name: 'Benthothuria'
+}   
+item {
+  id: 10
+  name: 'Benthothuriafunebris'
+}    
+item {
+  id: 11
+  name: 'Brisingid1'
+} 
+item {
+  id: 12
+  name: 'Brisingid2'
+}
+item {
+  id: 13
+  name: 'CNIDARIA'
+}     
+item {
+  id: 14
+  name: 'Cephalopoda'
+}     
+item {
+  id: 15
+  name: 'Cirripedia'
+} 
+item {
+  id: 16
+  name: 'Cnidaria1'
+} 
+item {
+  id: 17
+  name: 'Cnidaria10'
+}
+item {
+  id: 18
+  name: 'Cnidaria11'
+} 
+item {
+  id: 19
+  name: 'Cnidaria12'
+} 
+item {
+  id: 20
+  name: 'Cnidaria13'
+}  
+item {
+  id: 21
+  name: 'Cnidaria14'
+} 
+item {
+  id: 22
+  name: 'Cnidaria15'
+} 
+item {
+  id: 23
+  name: 'Cnidaria16'
+}  
+item {
+  id: 24
+  name: 'Cnidaria17'
+}  
+item {
+  id: 25
+  name: 'Cnidaria18'
+}  
+item {
+  id: 26
+  name: 'Cnidaria19'
+} 
+item {
+  id: 27
+  name: 'Cnidaria2'
+}  
+item {
+  id: 28
+  name: 'Cnidaria20'
+}
+item {
+  id: 29
+  name: 'Cnidaria21'
+}  
+item {
+  id: 30
+  name: 'Cnidaria3'
+}  
+item {
+  id: 31
+  name: 'Cnidaria4'
+}         
+item {
+  id: 32
+  name: 'Cnidaria5'
+}       
+item {
+  id: 33
+  name: 'Cnidaria6'
+}      
+item {
+  id: 34
+  name: 'Cnidaria7'
+}      
+item {
+  id: 35
+  name: 'Cnidaria8'
+} 
+item {
+  id: 36
+  name: 'Cnidaria9'
+}      
+item {
+  id: 37
+  name: 'Crinoid1'
+}       
+item {
+  id: 38
+  name: 'Crinoid2'
+}       
+item {
+  id: 39
+  name: 'Deima'
+}       
+item {
+  id: 40
+  name: 'ECHIURA'
+} 
+item {
+  id: 41
+  name: 'Enypniasteseximia'
+}
+item {
+  id: 42
+  name: 'FORAMINIFERA'
+}
+item {
+  id: 43
+  name: 'HOLOTHURIAN'
+}
+item {
+  id: 44
+  name: 'Holothuroid3'
+}
+item {
+  id: 45
+  name: 'Holothuroid4'
+} 
+item {
+  id: 46
+  name: 'Holothuroid5'
+} 
+item {
+  id: 47
+  name: 'Holothuroid6'
+} 
+item {
+  id: 48
+  name: 'MEDUSA'
+}  
+item {
+  id: 49
+  name: 'Mesothuria'
+} 
+item {
+  id: 50
+  name: 'Munnopsida'
+} 
+item {
+  id: 51
+  name: 'Oneirophanta'
+}  
+item {
+  id: 52
+  name: 'Ophiuroidea'
+} 
+item {
+  id: 53
+  name: 'PORIFERA'
+} 
+item {
+  id: 54
+  name: 'Paelopatides'
+} 
+item {
+  id: 55
+  name: 'Paroriza'
+} 
+item {
+  id: 56
+  name: 'Peniagone'
+} 
+item {
+  id: 57
+  name: 'Peniagonesp2'
+}  
+item {
+  id: 58
+  name: 'Platyctenida'
+} 
+item {
+  id: 59
+  name: 'Polychaete1'
+} 
+item {
+  id: 60
+  name: 'Polynoid1'
+}   
+item {
+  id: 61
+  name: 'Polynoid2'
+} 
+item {
+  id: 62
+  name: 'Pseudostichopusaemulatus'
+}  
+item {
+  id: 63
+  name: 'Pseudostichopusvillosus'
+} 
+item {
+  id: 64
+  name: 'Psychropoteslongicauda'
+} 
+item {
+  id: 65
+  name: 'Pycnogonida'
+} 
+item {
+  id: 66
+  name: 'Rayedmound'
+} 
+item {
+  id: 67
+  name: 'Squatlobster'
+} 
+item {
+  id: 68
+  name: 'Stalkedtunicate'
+}  
+item {
+  id: 69
+  name: 'Tunicata'
+} 
+item {
+  id: 70
+  name: 'Tunicata2'
+} 
+item {
+  id: 71
+  name: 'UNKNOWN'
+} 
+item {
+  id: 72
+  name: 'Umbellula'
+} 
+item {
+  id: 73
+  name: 'Umbellula1'
+} 
+item {
+  id: 74
+  name: 'Umbellula3'
+} 
+item {
+  id: 75
+  name: 'Unknown'
+} 
+item {
+  id: 76
+  name: 'UnknownAC'
+} 
+item {
+  id: 77
+  name: 'UnknownAG'
+} 
+item {
+  id: 78
+  name: 'UnknownAH'
+} 
+item {
+  id: 79
+  name: 'UnknownC'
+} 
+item {
+  id: 80
+  name: 'UnknownX'
+} 
+item {
+  id: 81
+  name: 'UnknownZ'
+}

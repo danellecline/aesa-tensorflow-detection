@@ -237,61 +237,8 @@ def convert_annotation(raw_file, img_dir, annotation, image_height, image_width,
     else:
         brx = min(tile_width, int(tlx + crop_pixels/2))
         bry = min(tile_height, int(tly + crop_pixels/2))
-        
-    crop_img = img[tly:tly + int(crop_pixels), tlx:tlx+int(crop_pixels)] 
-    gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY) 
-    display_annotation(annotation, brx, bry, img, tlx, tly)
-    
-    ret2, th = cv2.threshold(gray_image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(2,2))   
-    kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
-    erode = cv2.erode(th,kernel,iterations = 1)
-    clean = cv2.dilate(erode,kernel2,iterations = 1)
 
-    '''blur_img = cv2.medianBlur(gray_image, 5) 
-th1 = cv2.adaptiveThreshold(blur_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
-                            cv2.THRESH_BINARY, 11, 2)
-th2 = cv2.adaptiveThreshold(blur_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
-                            cv2.THRESH_BINARY, 11, 2)
-
-titles = ['Original Image',  'Otsu', 'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding'] 
-
-images = [crop_img, clean, th1, th2]
-for i in range(4):
-    plt.subplot(2, 2, i + 1), plt.imshow(images[i], 'gray')
-    plt.title(titles[i])
-    plt.xticks([]), plt.yticks([])
-#plt.show()'''
-    
-    # first try Otsu
-    cv2.imshow('Otsu', clean)
-    found, x, y, w, h =  find_object(clean, crop_img)
-    
-    if 'Cnidaria' not in a.category and 'Ophiur' not in a.category: 
-        if not found: 
-            # Next try threshold in increments of 2 
-            for thresh in range(3, 13, 2):
-                th = cv2.adaptiveThreshold(th, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
-                                            cv2.THRESH_BINARY, thresh, 2)
-                clean = cv2.erode(th, kernel, iterations=1)
-                clean = cv2.dilate(clean, kernel2, iterations=2)
-                clean = cv2.erode(clean, kernel, iterations=1)
-                clean = cv2.dilate(clean, kernel2, iterations=2)
-        
-                cv2.imshow('Thresh {0}'.format(thresh), th)
-                found, x, y, w, h = find_object(th, crop_img)
-                if found:
-                    break;
-                    
-    if found:
-        # adjust the actual bounding box with new localized bounding box coordinates
-        tlx += x;
-        tly += y;
-        brx = tlx + w;
-        bry = tly + h;
-
-    cv2.destroyAllWindows() 
-    display_annotation(annotation, brx, bry, img, tlx, tly)
+    #display_annotation(annotation, brx, bry, img, tlx, tly)
     obj = {}
     obj['name'] = a.category
     obj['difficult'] = 0
@@ -426,7 +373,9 @@ if __name__ == '__main__':
         if key not in frame_dict.keys():
             frame_dict[key] = 1
             # http://www.imagemagick.org/Usage/crop/#crop_equal
-            os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.
+            if not os.path.exists('{0}/{1}_86.png'.format(png_dir, key)):
+                print("Converting {0} to tiles".format(filename))
+                os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.
                   format(filename, n_tilesw, n_tilesh, png_dir, key));
             image_file = '{0}/{1}_{2:02}.png'.format(png_dir, key, 0)
 
