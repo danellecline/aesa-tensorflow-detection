@@ -151,7 +151,7 @@ def convert_annotation(raw_file, img_dir, annotation, image_height, image_width,
 
   index = (posy - 1) * int(image_width / tile_width) + (posx - 1)
 
-  print('Index: {0} center x {1} centery {2}'.format(index, values_x, values_y))
+  #print('Index: {0} center x {1} centery {2}'.format(index, values_x, values_y))
 
   image_file = '{0}_{1:02}.png'.format(stem, index)
 
@@ -167,7 +167,7 @@ def convert_annotation(raw_file, img_dir, annotation, image_height, image_width,
     brx = min(tile_width, int(tlx + crop_pixels / 2))
     bry = min(tile_height, int(tly + crop_pixels / 2))
 
-  crop_img = img[tly:tly + int(crop_pixels), tlx:tlx + int(crop_pixels)]
+  '''crop_img = img[tly:tly + int(crop_pixels), tlx:tlx + int(crop_pixels)]
   gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
   display_annotation(annotation, brx, bry, img, tlx, tly)
 
@@ -175,23 +175,8 @@ def convert_annotation(raw_file, img_dir, annotation, image_height, image_width,
   kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2))
   kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
   erode = cv2.erode(th, kernel, iterations=1)
-  clean = cv2.dilate(erode, kernel2, iterations=1)
-
-  '''blur_img = cv2.medianBlur(gray_image, 5) 
-th1 = cv2.adaptiveThreshold(blur_img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
-                          cv2.THRESH_BINARY, 11, 2)
-th2 = cv2.adaptiveThreshold(blur_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
-                          cv2.THRESH_BINARY, 11, 2)
-
-titles = ['Original Image',  'Otsu', 'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding'] 
-
-images = [crop_img, clean, th1, th2]
-for i in range(4):
-  plt.subplot(2, 2, i + 1), plt.imshow(images[i], 'gray')
-  plt.title(titles[i])
-  plt.xticks([]), plt.yticks([])
-#plt.show()'''
-
+  clean = cv2.dilate(erode, kernel2, iterations=1) 
+  
   # first try Otsu
   cv2.imshow('Otsu', clean)
   found, x, y, w, h = find_object(clean, crop_img)
@@ -215,7 +200,7 @@ for i in range(4):
     bry = tly + h;
 
   cv2.destroyAllWindows()
-  display_annotation(annotation, brx, bry, img, tlx, tly)
+  display_annotation(annotation, brx, bry, img, tlx, tly)'''
   obj = {}
   obj['name'] = a.category
   obj['difficult'] = conf.DIFFICULT
@@ -226,7 +211,6 @@ for i in range(4):
   obj['bndbox']['ymin'] = tly
   obj['bndbox']['xmax'] = brx
   obj['bndbox']['ymax'] = bry
-  print('done')
   return obj, image_file
 
 
@@ -259,8 +243,8 @@ def correct(annotation):
 if __name__ == '__main__':
 
   ensure_dir(conf.DATA_DIR)
-  failed_file = open(os.path.join(args.data_dir, 'failed_crops.txt'), 'w')
-  png_dir = os.path.join(conf.DATA_DIR, 'imgs')
+  failed_file = open(os.path.join(conf.DATA_DIR, 'failed_crops.txt'), 'w')
+  png_dir = os.path.join(conf.PNG_DIR)
   ensure_dir(png_dir)
   label_map_dict = label_map_util.get_label_map_dict(conf.LABEL_PATH_PATH)
   aesa_annotation = namedtuple("Annotation", ["category", "centerx", "centery", "mtype", "measurement", "index"])
@@ -288,8 +272,10 @@ if __name__ == '__main__':
     actual_height = None
     frame_dict = {}
     annotation_dict = {}
+    ntest = 0
+    ttl_objs = 0
 
-    for index, row in df.iterrows():
+    for index, row in sorted(df.iterrows()):
       try:
         # if index > 1:
         #  break;
@@ -320,11 +306,11 @@ if __name__ == '__main__':
         # if haven't converted tiles to smaller grid, convert
         if key not in frame_dict.keys():
           frame_dict[key] = 1
-          # http://www.imagemagick.org/Usage/crop/#crop_equal
-          os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.
-                    format(filename, n_tilesw, n_tilesh, png_dir, key));
           image_file = '{0}/{1}_{2:02}.png'.format(png_dir, key, 0)
-
+          # http://www.imagemagick.org/Usage/crop/#crop_equal
+          if not os.path.exists(image_file):
+            print('Converting {0} into tile'.format(filename))
+            os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.format(filename, n_tilesw, n_tilesh, png_dir, key));
           if not actual_height and not actual_width:
             actual_height, actual_width = get_dims(image_file)
 
@@ -351,21 +337,22 @@ if __name__ == '__main__':
           a['source']['database'] = conf.DATABASE
           annotation_dict[key] = a
 
+        print('Appending object to key {0}'.format(key))
         annotation_dict[key]['object'].append(obj)
+        ntest += 1
+        if ntest > 100:
+          break;
 
       except Exception as ex:
         failed_file.write("Error cropping annotation row {0} filename {1} \n".format(index, filename))
 
-    ttl_objs = 0
-    png_collection_dir = conf.PNG_DIR
-    ensure_dir(png_collection_dir)
-
+    ensure_dir(conf.ANNOTATION_DIR)
     for key, data in annotation_dict.items():
-      tf_example, num_objs = dict_to_tf_example(data, conf.DATA_DIR, label_map_dict, png_dir)
+      print('Key {0}'.format(key))
+      try:
+        tf_example, num_objs = dict_to_tf_example(data, conf.DATA_DIR, label_map_dict, png_dir)
 
-      if tf_example:
         ttl_objs += num_objs
-        writer.write(tf_example.SerializeToString())
         xml = dicttoxml(data, custom_root='annotation', attr_type=False)
 
         dom = parseString(xml)
@@ -373,19 +360,23 @@ if __name__ == '__main__':
 
         # remove empty lines
         pretty_xml_as_string = os.linesep.join([s for s in pretty_xml_as_string.splitlines() if s.strip()])
-        ensure_dir(conf.ANNOTATION_DIR)
-        with open(os.path.join(conf.ANNOTATION_DIR, '{0}.xml'.format(key)), 'w') as f2:
+        xml_file = os.path.join(conf.ANNOTATION_DIR, '{0}.xml'.format(key))
+        with open(xml_file, 'w') as f2:
           f2.write(pretty_xml_as_string)
         f2.close()
 
         # copy tile to the target directory
-        src = os.path.join(png_dir, data['filename'])
-        dst = os.path.join(png_collection_dir, data['filename'])
-        shutil.copy(src, dst)
-      else:
-        print('No objects found in {0}'.format(tf_example))
+        #src = os.path.join(png_dir, data['filename'])
+        #dst = os.path.join(png_collection_dir, data['filename'])
+        #shutil.copy(src, dst)
+        print('{0} objects found in {1}'.format(num_objs, xml_file))
+
+      except Exception as ex:
+        print('Exception {0}'.format(ex))
+        continue
 
   except Exception as ex:
     print(ex)
 
+  print('{0} total objects found in {1} frames'.format(ttl_objs, len(annotation_dict.keys())))
   print('Done')
