@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     annotations = []
     xml_in = []
-    for xml_in in glob.iglob(confANNOTATION_DIR + '*.xml', recursive=False):
+    for xml_in in glob.iglob(conf.ANNOTATION_DIR + '*.xml', recursive=False):
         print('Found {0}'.format(xml_in))
         # find the source image in the xml_in file and replace
         infile = open(xml_in, "r")
