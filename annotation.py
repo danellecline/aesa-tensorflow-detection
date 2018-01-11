@@ -23,6 +23,7 @@ import conf
 import image_utils
 from collections import defaultdict
 from collections import namedtuple
+from shutil import copyfile
 
 class Annotation():
   frame_dict = {}
@@ -32,6 +33,8 @@ class Annotation():
   tile_height = None
   image_width = None
   image_height = None
+  scale_x = 1.0
+  scale_y = 1.0
   annotations = []
 
   aesa_annotation = namedtuple("Annotation", ["category", "group", "x", "y", "pad", "filename", "length"])
@@ -84,7 +87,7 @@ class Annotation():
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
               ntest += 1
-              if ntest > 200:
+              if ntest > 10:
                 break;
 
           except Exception as ex:
@@ -106,8 +109,8 @@ class Annotation():
                   a['folder'] = conf.COLLECTION
                   a['filename'] = tail
                   a['size'] = {}
-                  a['size']['width'] = self.tile_width
-                  a['size']['height'] = self.tile_height
+                  a['size']['width'] = conf.TARGET_TILE_WIDTH
+                  a['size']['height'] = conf.TARGET_TILE_HEIGHT
                   a['size']['depth'] = conf.DEPTH
                   a['source'] = {}
                   a['source']['image'] = 'AESA'
@@ -144,9 +147,8 @@ class Annotation():
               # get image height and width of raw tile; only do this once assuming all times are the same
               if self.image_width is None and self.image_height is None:
                   self.image_height, self.image_width = image_utils.get_dims(a.filename)
-                  # create tiled grid closest to conf.TARGET_TILE_WIDTH by conf.TARGET_TILE_HEIGHT
-                  n_tilesh = math.ceil(self.image_height / conf.TARGET_TILE_HEIGHT)
-                  n_tilesw = math.ceil(self.image_width / conf.TARGET_TILE_WIDTH)
+                  n_tilesh = 10
+                  n_tilesw = 1
 
               head, tail = os.path.split(a.filename)
               key = tail.split('.')[0]
@@ -154,16 +156,17 @@ class Annotation():
               # if haven't converted tiles to smaller grid, convert
               if key not in self.frame_dict.keys():
                   self.frame_dict[key] = 1
-                  image_file = '{0}/{1}_{2:02}.png'.format(conf.PNG_DIR, key, 0)
+                  image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
                       print('Converting {0} into tiles'.format(a.filename))
                       os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
-                                .format(a.filename, n_tilesw, n_tilesh, conf.PNG_DIR, key));
+                              .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
                   if not self.tile_height and not self.tile_width:
                       self.tile_height, self.tile_width = image_utils.get_dims(image_file)
-                  self.bins_x = numpy.arange(start=0, stop=self.image_width - self.tile_width, step=self.tile_width - 1)
                   self.bins_y = numpy.arange(start=0, stop=self.image_height - self.tile_height, step=self.tile_height - 1)
+                  self.scale_x = conf.TARGET_TILE_WIDTH/self.tile_width
+                  self.scale_y = conf.TARGET_TILE_HEIGHT/self.tile_height
 
           except Exception as ex:
             print("Error converting image {0} \n".format(a.filename))
@@ -198,19 +201,19 @@ class Annotation():
 
     head, tail = os.path.split(annotation.filename)
     stem = tail.split('.')[0]
-
-    values_x = annotation.x
-    values_y = annotation.y
-
-    posx = numpy.digitize(values_x, self.bins_x)
-    posy = numpy.digitize(values_y, self.bins_y)
+    posx = 1
+    posy = numpy.digitize(annotation.y, self.bins_y)
 
     # calculate what image index the annotations should fall into
     index = (posy - 1) * int(self.image_width / self.tile_width) + (posx - 1)
 
+    # http://www.imagemagick.org/Usage/crop/#crop_equal
     #print('Index: {0} center x {1} centery {2}'.format(index, values_x, values_y))
+    src_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, stem, index)
+    dst_file = '{0}/{1}_{2:02}.png'.format(conf.PNG_DIR, stem, index)
+    temp_file = '/tmp/temp.png'
 
-    image_file = '{0}_{1:02}.png'.format(stem, index)
+    copyfile(src_file, temp_file)
 
     length = conf.MIN_CROP
     if annotation.length < conf.MIN_CROP:
@@ -221,15 +224,14 @@ class Annotation():
     tly = int(max(0, int(center_y - (length/2) - annotation.pad)))
     brx = int(min(self.tile_width ,center_x + (length/2) + annotation.pad))
     bry = int(min(self.tile_height ,center_y + (length/2) + annotation.pad))
-
-    img = cv2.imread('{0}/{1}'.format(conf.PNG_DIR, image_file))
+    img = cv2.imread(temp_file)
     crop_img = img[tly:bry, tlx:brx]
     gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
 
     cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
-    cv2.imshow("Annotation", img)
+    cv2.putText(img, str(index), (brx, bry), font, 2, (255, 255, 255), 2)
   
     ret2, th = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2))
@@ -246,7 +248,7 @@ class Annotation():
         for thresh in range(3, 13, 2):
           th = cv2.adaptiveThreshold(th, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
                                      cv2.THRESH_BINARY, thresh, 2)
-          cv2.imshow('Thresh {0}'.format(thresh), th)
+          #cv2.imshow('Thresh {0}'.format(thresh), th)
           found, x, y, w, h = image_utils.find_object(th, crop_img)
           if found:
             break;
@@ -262,7 +264,9 @@ class Annotation():
     cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
+    cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
     cv2.imshow("Annotation", img)
+    cv2.resizeWindow('Annotation', 950, 540)
     cv2.waitKey(1000)
     obj = {}
     obj['name'] = annotation.category
@@ -270,8 +274,13 @@ class Annotation():
     obj['truncated'] = 0
     obj['pose'] = conf.POSE
     obj['bndbox'] = {}
-    obj['bndbox']['xmin'] = tlx
-    obj['bndbox']['ymin'] = tly
-    obj['bndbox']['xmax'] = brx
-    obj['bndbox']['ymax'] = bry
-    return obj, image_file
+    obj['bndbox']['xmin'] = int(self.scale_x*tlx)
+    obj['bndbox']['ymin'] = int(self.scale_y*tly)
+    obj['bndbox']['xmax'] = int(self.scale_x*brx)
+    obj['bndbox']['ymax'] = int(self.scale_y*bry)
+
+    if not os.path.exists(dst_file):
+      resized_img = cv2.resize(img, (conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT))
+      cv2.imwrite(dst_file, resized_img)
+
+    return obj, dst_file

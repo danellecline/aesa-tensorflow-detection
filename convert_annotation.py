@@ -120,7 +120,7 @@ if __name__ == '__main__':
   try:
 
     label_map_dict = label_map_util.get_label_map_dict(conf.LABEL_PATH_PATH)
-    a = Annotation() #conf.GROUP_FILE)
+    a = Annotation(conf.GROUP_FILE)
     a.generate_tiles()
     a.aggregate()
 
