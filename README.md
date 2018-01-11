@@ -7,6 +7,7 @@ Code for testing Tensorflow detection API on on AESA data
 - Python version  3.5, on a Mac OSX download and install from here:
  https://www.python.org/downloads/mac-osx/
 - [Protobuf](https://developers.google.com/protocol-buffers/
+- Packages: python-tk e.g. apt-get install python3.5-tk,  
 
 ## Running
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source ~/Dropbox/GitHub/venv-aesa-tensorflow-detection/bin/activate
+cd ~/Dropbox/GitHub/aesa-tensorflow-detection/
 TOP_DIR='/Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/'
 python create_tfrecord.py \
 --collection M56 \

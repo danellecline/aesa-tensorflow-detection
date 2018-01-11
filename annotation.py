@@ -87,7 +87,7 @@ class Annotation():
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
               ntest += 1
-              if ntest > 10:
+              if ntest > 50:
                 break;
 
           except Exception as ex:
@@ -240,7 +240,7 @@ class Annotation():
     clean = cv2.dilate(erode, kernel2, iterations=1) 
     
     # first try Otsu
-    cv2.imshow('Otsu', clean)
+    #cv2.imshow('Otsu', clean)
     found, x, y, w, h = image_utils.find_object(clean, crop_img)
   
     if not found and 'CNIDARIA' not in annotation.category and 'OPHIUR' not in annotation.category:
@@ -260,14 +260,14 @@ class Annotation():
       brx = tlx + w;
       bry = tly + h;
   
-    cv2.destroyAllWindows()
+    '''cv2.destroyAllWindows()
     cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
     cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
     cv2.imshow("Annotation", img)
-    cv2.resizeWindow('Annotation', 950, 540)
-    cv2.waitKey(1000)
+    cv2.resizeWindow('Annotation', conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
+    cv2.waitKey(5000)'''
     obj = {}
     obj['name'] = annotation.category
     obj['difficult'] = conf.DIFFICULT
