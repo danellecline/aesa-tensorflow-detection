@@ -38,6 +38,12 @@ Also see [https://www.tensorflow.org/install/install_linux](https://www.tensorfl
     $ protoc object_detection/protos/*.proto --python_out=.
     $ popd 
 
+## Download COCO-pretrained model for transfer learning
+    $ mkdir -p models/
+    $ cd models
+    $ curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz > faster_rcnn_resnet101_coco_11_06_2017.tar.gz
+    $ tar -xvf faster_rcnn_resnet101_coco_11_06_2017.tar.gz 
+
 ### Add libraries to PYTHONPATH
 
 When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
