@@ -21,12 +21,12 @@ if __name__ == '__main__':
     train_data = annotations[:round(0.8*total)]
     test_data = annotations[:round(0.2*total)]
 
-    with open(os.path.join(conf.DATA_DIR, 'train.txt'), 'w') as f:
+    with open(os.path.join(conf.DATA_DIR, conf.COLLECTION, 'train.txt'), 'w') as f:
         for l in train_data:
             path, filename = os.path.split(l)
             f.write(filename + '\n')
 
-    with open(os.path.join(conf.DATA_DIR, 'test.txt'), 'w') as f:
+    with open(os.path.join(conf.DATA_DIR, conf.COLLECTION, 'test.txt'), 'w') as f:
         for l in test_data:
             path, filename = os.path.split(l)
             f.write(l + '\n')
