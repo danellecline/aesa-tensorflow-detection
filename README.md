@@ -38,12 +38,6 @@ Also see [https://www.tensorflow.org/install/install_linux](https://www.tensorfl
     $ protoc object_detection/protos/*.proto --python_out=.
     $ popd 
 
-## Download COCO-pretrained model for transfer learning
-    $ mkdir -p models/
-    $ cd models
-    $ curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz > faster_rcnn_resnet101_coco_11_06_2017.tar.gz
-    $ tar -xvf faster_rcnn_resnet101_coco_11_06_2017.tar.gz 
-
 ### Add libraries to PYTHONPATH
 
 When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
@@ -51,6 +45,16 @@ This can be done by running the following from tensorflow_models :
 
     $ pushd tensorflow_models/research/
     $ export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
+    $ popd
+
+##  Download protoc version 3.3 (already compiled).
+    $ pushd tensorflow_models/research
+    $ mkdir protoc_3.3
+    $ cd protoc_3.3
+    $ wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+    $ chmod 775 protoc-3.3.0-linux-x86_64.zip
+    $ unzip protoc-3.3.0-linux-x86_64.zip 
+    $ protoc_3.3/bin/protoc object_detection/protos/*.proto --python_out=.
     $ popd
     
 ### Generate the TFRecord files
@@ -62,6 +66,13 @@ This can be done by running the following from tensorflow_models :
     $ python create_tfrecord.py  
     --data_dir PATH_TO_TRAINING_DATA --collection aesa_BENTHIC_2017 \
     --output_path aesa_BENTHIC_2017_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
+    
+
+## Download COCO-pretrained model for transfer learning
+    $ mkdir -p models/
+    $ cd models
+    $ curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz > faster_rcnn_resnet101_coco_11_06_2017.tar.gz
+    $ tar -xvf faster_rcnn_resnet101_coco_11_06_2017.tar.gz 
     
 ### Edit the pipeline.config file
 Insert the correct paths for the training/test data in PATH_TO_BE_CONFIGURED 
