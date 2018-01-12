@@ -52,8 +52,9 @@ class Annotation():
               if np.isnan(float(row['coarse_class'])):
                   print('Category {0} does not have a group'.format(row['category']))
               else:
-                  print('Grouping category {0} as GROUP{1}'.format(row['category'], int(row['coarse_class'])))
-                  self.group_map[row['category']] = 'GROUP{:d}'.format(int(row['coarse_class']))
+                  # GROUP1, GROUP2, 1-based indexing
+                  print('Grouping category {0} as GROUP{1}'.format(row['category'], int(row['coarse_class']) + 1))
+                  self.group_map[row['category']] = 'GROUP{:d}'.format(int(row['coarse_class']) + 1)
 
       ntest = 0
       for index, row in self.df_annotations.iterrows():
@@ -86,9 +87,9 @@ class Annotation():
               if group_file:
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
-              #ntest += 1
-              #if ntest > 1000:
-              #  break;
+              ntest += 1
+              if ntest > 1:
+                break;
 
           except Exception as ex:
               print("Error processing annotation row {0} filename {1} \n".format(index, filename))
@@ -283,6 +284,14 @@ class Annotation():
     obj['bndbox']['ymax'] = int(self.scale_y*bry)
 
     if not os.path.exists(dst_file):
+      # calculate the mean of all non black pixels
+      img_float = np.float32(img)
+      img_float[np.where((img_float == [0, 0, 0]).all(axis=2))] = [np.nan, np.nan, np.nan]
+      average_color = np.nanmean(img_float, axis=(0,1))
+
+      # replace black pizels with the mean
+      average_color = np.uint8(average_color)
+      img[np.where((img == [0, 0, 0]).all(axis=2))] = average_color
       resized_img = cv2.resize(img, (conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT))
       cv2.imwrite(dst_file, resized_img)
 
