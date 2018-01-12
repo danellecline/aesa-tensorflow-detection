@@ -35,7 +35,13 @@ Also see [https://www.tensorflow.org/install/install_linux](https://www.tensorfl
     
 ### Install Tensorflow models and object detection protocols
     $ git clone https://github.com/tensorflow/models.git tensorflow_models
-    $ push tensorflow_models/research/
+    $ push tensorflow_models/research/  
+    ##  Download protoc version 3.3 (already compiled). 
+    $ mkdir protoc_3.3
+    $ cd protoc_3.3
+    $ wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+    $ chmod 775 protoc-3.3.0-linux-x86_64.zip
+    $ unzip protoc-3.3.0-linux-x86_64.zip 
     $ protoc object_detection/protos/*.proto --python_out=.
     $ popd 
 
@@ -48,16 +54,6 @@ This can be done by running the following from tensorflow_models :
     $ export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
     $ popd
 
-##  Download protoc version 3.3 (already compiled).
-    $ pushd tensorflow_models/research
-    $ mkdir protoc_3.3
-    $ cd protoc_3.3
-    $ wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
-    $ chmod 775 protoc-3.3.0-linux-x86_64.zip
-    $ unzip protoc-3.3.0-linux-x86_64.zip 
-    $ protoc_3.3/bin/protoc object_detection/protos/*.proto --python_out=.
-    $ popd
-    
 ### Generate the TFRecord files
 
     $ wget URL_FOR_TRAINING_DATA
@@ -76,7 +72,7 @@ This can be done by running the following from tensorflow_models :
     $ tar -xvf faster_rcnn_resnet101_coco_11_06_2017.tar.gz 
     
 ### Edit the pipeline.config file
-Insert the correct paths for the training/test data in PATH_TO_BE_CONFIGURED 
+Insert the correct paths for the training/test data in the train/test_input_reader and num_examples in the eval_config
 
 ### Train the model 
      
