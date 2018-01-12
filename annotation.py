@@ -86,9 +86,9 @@ class Annotation():
               if group_file:
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
-              ntest += 1
-              if ntest > 50:
-                break;
+              #ntest += 1
+              #if ntest > 1000:
+              #  break;
 
           except Exception as ex:
               print("Error processing annotation row {0} filename {1} \n".format(index, filename))
@@ -191,11 +191,11 @@ class Annotation():
       return annotation
 
 
-  def annotation_to_dict(self, annotation):
+  def annotation_to_dict(self, annotation, optimize_box=False):
     '''
      Corrects annotation bounding box and converts annotation to dictionary
-    :param raw_file:  path to file with image
     :param annotation: annotation tuple
+    :param optimize_box: optimize the bounding box around the annotation by doing some object detection
     :return: the annotation dictionary and the image filename the annotation is associated with
     '''
 
@@ -224,50 +224,53 @@ class Annotation():
     tly = int(max(0, int(center_y - (length/2) - annotation.pad)))
     brx = int(min(self.tile_width ,center_x + (length/2) + annotation.pad))
     bry = int(min(self.tile_height ,center_y + (length/2) + annotation.pad))
-    img = cv2.imread(temp_file)
-    crop_img = img[tly:bry, tlx:brx]
-    gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
 
-    cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
-    cv2.putText(img, str(index), (brx, bry), font, 2, (255, 255, 255), 2)
+    img = cv2.imread(temp_file)
+    if optimize_box == True:
+      crop_img = img[tly:bry, tlx:brx]
+      gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+
+      cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
+      cv2.putText(img, str(index), (brx, bry), font, 2, (255, 255, 255), 2)
+
+      ret2, th = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+      kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2))
+      kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+      erode = cv2.erode(th, kernel, iterations=1)
+      clean = cv2.dilate(erode, kernel2, iterations=1)
+
+      # first try Otsu
+      #cv2.imshow('Otsu', clean)
+      found, x, y, w, h = image_utils.find_object(clean, crop_img)
+
+      if not found and 'CNIDARIA' not in annotation.category and 'OPHIUR' not in annotation.category:
+          # Next try threshold in increments of 2
+          for thresh in range(3, 13, 2):
+            th = cv2.adaptiveThreshold(th, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
+                                       cv2.THRESH_BINARY, thresh, 2)
+            #cv2.imshow('Thresh {0}'.format(thresh), th)
+            found, x, y, w, h = image_utils.find_object(th, crop_img)
+            if found:
+              break;
+
+      if found:
+        # adjust the actual bounding box with new localized bounding box coordinates
+        tlx += x;
+        tly += y;
+        brx = tlx + w;
+        bry = tly + h;
   
-    ret2, th = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2))
-    kernel2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
-    erode = cv2.erode(th, kernel, iterations=1)
-    clean = cv2.dilate(erode, kernel2, iterations=1) 
-    
-    # first try Otsu
-    #cv2.imshow('Otsu', clean)
-    found, x, y, w, h = image_utils.find_object(clean, crop_img)
-  
-    if not found and 'CNIDARIA' not in annotation.category and 'OPHIUR' not in annotation.category:
-        # Next try threshold in increments of 2
-        for thresh in range(3, 13, 2):
-          th = cv2.adaptiveThreshold(th, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
-                                     cv2.THRESH_BINARY, thresh, 2)
-          #cv2.imshow('Thresh {0}'.format(thresh), th)
-          found, x, y, w, h = image_utils.find_object(th, crop_img)
-          if found:
-            break;
-  
-    if found:
-      # adjust the actual bounding box with new localized bounding box coordinates
-      tlx += x;
-      tly += y;
-      brx = tlx + w;
-      bry = tly + h;
-  
-    '''cv2.destroyAllWindows()
-    cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
-    cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
-    cv2.imshow("Annotation", img)
-    cv2.resizeWindow('Annotation', conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
-    cv2.waitKey(5000)'''
+      '''cv2.destroyAllWindows()
+      cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
+      cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
+      cv2.imshow("Annotation", img)
+      cv2.resizeWindow('Annotation', conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
+      cv2.waitKey(5000)'''
+
     obj = {}
     obj['name'] = annotation.category
     obj['difficult'] = conf.DIFFICULT
