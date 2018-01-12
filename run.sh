@@ -7,9 +7,9 @@
 # The models use a lot of memory during training, and can spike during
 # testing at checkpoints
 
-pushd tensorflow_models
+pushd tensorflow_models/research
 
-export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/research/slim:`pwd`/research
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
 popd
 export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64/ 
 export CUDA_VISIBLE_DEVICES="$3" 
