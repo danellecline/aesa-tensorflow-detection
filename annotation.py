@@ -88,7 +88,7 @@ class Annotation():
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
               ntest += 1
-              if ntest > 1:
+              if ntest > 1000:
                 break;
 
           except Exception as ex:
@@ -278,10 +278,10 @@ class Annotation():
     obj['truncated'] = 0
     obj['pose'] = conf.POSE
     obj['bndbox'] = {}
-    obj['bndbox']['xmin'] = int(self.scale_x*tlx)
-    obj['bndbox']['ymin'] = int(self.scale_y*tly)
-    obj['bndbox']['xmax'] = int(self.scale_x*brx)
-    obj['bndbox']['ymax'] = int(self.scale_y*bry)
+    obj['bndbox']['xmin'] = max(int(self.scale_x*tlx), conf.TARGET_TILE_WIDTH)
+    obj['bndbox']['ymin'] = max(int(self.scale_y*tly), conf.TARGET_TILE_HEIGHT)
+    obj['bndbox']['xmax'] = max(int(self.scale_x*brx), conf.TARGET_TILE_WIDTH)
+    obj['bndbox']['ymax'] = max(int(self.scale_y*bry), conf.TARGET_TILE_HEIGHT)
 
     if not os.path.exists(dst_file):
       # calculate the mean of all non black pixels
