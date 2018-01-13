@@ -7,8 +7,8 @@
 # The models use a lot of memory during training, and can spike during
 # testing at checkpoints
 
+source ~/Dropbox/GitHub/venv-aesa-tensorflow-detection-devbox/bin/activate
 pushd tensorflow_models/research
-
 export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
 popd
 export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64/ 
