@@ -24,71 +24,80 @@ Code for testing Tensorflow detection API on on AESA data
     $ pip3 install -r requirements.txt
     
 ### Install Tensorflow for Mac OSX
-    $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl
+    $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.4.0-py3-none-any.whl
     $ pip3 install --upgrade $TF_BINARY_URL
     
 ### Install Tensorflow for Ubuntu GPU
 Also see [https://www.tensorflow.org/install/install_linux](https://www.tensorflow.org/install/install_linux)
 
-    $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0-cp35-cp35m-linux_x86_64.whl 
-    $ pip3 install --upgrade tensorflow-gpu==1.3.0
+    $ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.4.0-cp35-cp35m-linux_x86_64.whl 
+    $ pip3 install --upgrade tensorflow-gpu==1.4.0
     
 ### Install Tensorflow models and object detection protocols
-    $ git clone https://github.com/tensorflow/models.git tensorflow_models
-    $ push tensorflow_models/research/  
-    ##  Download protoc version 3.3 (already compiled). 
-    $ mkdir protoc_3.3
-    $ cd protoc_3.3
-    $ wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
-    $ chmod 775 protoc-3.3.0-linux-x86_64.zip
-    $ unzip protoc-3.3.0-linux-x86_64.zip 
-    $ protoc object_detection/protos/*.proto --python_out=.
-    $ popd 
+
+``` bash
+git clone https://github.com/tensorflow/models.git tensorflow_models
+push tensorflow_models/research/  
+#  Download protoc version 3.3 (already compiled). 
+mkdir protoc_3.3
+cd protoc_3.3
+wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+chmod 775 protoc-3.3.0-linux-x86_64.zip
+unzip protoc-3.3.0-linux-x86_64.zip 
+protoc object_detection/protos/*.proto --python_out=.
+popd 
+```
 
 ### Add libraries to PYTHONPATH
 
 When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
 This can be done by running the following from tensorflow_models :
 
-    $ pushd tensorflow_models/research/
-    $ export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
-    $ popd
+``` bash
+pushd tensorflow_models/research/
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
+popd
+```
 
-### Generate the TFRecord files
-
-    $ wget URL_FOR_TRAINING_DATA
-    $ python create_tfrecord.py  
+### Generate the TFRecord files 
+``` bash
+wget URL_FOR_TRAINING_DATA
+python create_tfrecord.py  
     --data_dir PATH_TO_TRAINING_DATA --collection aesa_BENTHIC_2017 \
     --output_path aesa_BENTHIC_2017_train.record --label_map_path  aesa_benthic_label_map.pbtxt --set train 
-    $ python create_tfrecord.py  
+python create_tfrecord.py  
     --data_dir PATH_TO_TRAINING_DATA --collection aesa_BENTHIC_2017 \
     --output_path aesa_BENTHIC_2017_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
-    
+```    
 
 ## Download COCO-pretrained model for transfer learning
-    $ mkdir -p models/
-    $ cd models
-    $ curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz > faster_rcnn_resnet101_coco_11_06_2017.tar.gz
-    $ tar -xvf faster_rcnn_resnet101_coco_11_06_2017.tar.gz 
+``` bash
+mkdir -p models/
+cd models
+curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_08_2017.tar.gz > faster_rcnn_resnet101_coco_11_08_2017.tar.gz
+tar -xvf faster_rcnn_resnet101_coco_11_08_2017.tar.gz 
+```
     
 ### Edit the pipeline.config file
 Insert the correct paths for the training/test data in the train/test_input_reader and num_examples in the eval_config
 
 ### Train the model 
-     
-    $ python tensorflow_models/research/object_detection/train.py \
+``` bash     
+python tensorflow_models/research/object_detection/train.py \
     --logtostderr \
-    --pipeline_config_path=`pwd`/models/faster_rcnn_resnet50_coco/pipeline.config \ 
-    --train_dir=`pwd`/models/faster_rcnn_resnet50_coco/checkpoints \ 
-    --eval_dir=`pwd`/models/faster_rcnn_resnet50_coco/eval
+    --pipeline_config_path=`pwd`/models/faster_rcnn_resnet101_coco960540resolution_smallanchor/pipeline.config \ 
+    --train_dir=`pwd`/models/faster_rcnn_resnet101_coco960540resolution_smallanchor/checkpoints \ 
+    --eval_dir=`pwd`/models/faster_rcnn_resnet101_coco960540resolution_smallanchor/eval
+```
       
 ### Test the model 
-
-    $ python tensorflow_models/research/object_detection/eval.py \
+``` bash
+python tensorflow_models/research/object_detection/eval.py \
     --logtostderr \
-    --pipeline_config_path=`pwd`/models/faster_rcnn_resnet50_coco/pipeline.config \ 
+    --pipeline_config_path=`pwd`/models/faster_rcnn_resnet101_coco960540resolution_smallanchor/pipeline.config \ 
     --checkpoint_dir=`pwd`/models/checkpoints/ \
     --eval_dir=PATH_TO_EVAL_DIR
+```
 
 ## Bug fix
 add to tensorflow_models/research/object_detection/core/preprocessor.py 
