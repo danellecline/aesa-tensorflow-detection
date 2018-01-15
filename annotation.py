@@ -87,9 +87,9 @@ class Annotation():
               if group_file:
                 a = a._replace(category=self.group_map[a.category.upper()])
               self.annotations.append(a)
-              ntest += 1
-              if ntest > 1000:
-                break;
+              #ntest += 1
+              #if ntest > 1000:
+              #  break;
 
           except Exception as ex:
               print("Error processing annotation row {0} filename {1} \n".format(index, filename))

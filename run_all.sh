@@ -1,4 +1,5 @@
 #!/bin/bash
 nohup ./run.sh faster_rcnn_resnet101_coco960540resolution_smallanchor train 0 > faster_rcnn_resnet101_coco960540resolution_smallanchor.out 2>&1 &
+nohup ./run.sh ssd_inception_v2_coco_600resolution_smallanchor train 1 > ssd_inception_v2_coco_600resolution_smallanchor.out  2>&1 &
 #nohup ./run.sh faster_rcnn_resnet101_coco960540resolution_smallanchor_meanadjusted train 1 > faster_rcnn_resnet101_coco960540resolution_smallanchor_meanadjusted.out 2>&1 &
 #nohup ./run.sh faster_rcnn_resnet101_coco960540resolution_smallanchor_contrastaug train 2 > faster_rcnn_resnet101_coco960540resolution_smallanchor_contrastaug.out 2>&1 &

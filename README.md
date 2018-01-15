@@ -104,6 +104,10 @@ add to tensorflow_models/research/object_detection/core/preprocessor.py
 mean = list(mean) before lines 1474.
 https://www.bountysource.com/issues/48005318-bug-change-protobuf-to-list-in-object-detection-api
 
+## 
+Found 13919 examples in train set
+Found 3443 examples in test set
+
 ## Developer Notes
 
 TF_CONFIG - environment variable
