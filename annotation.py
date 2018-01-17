@@ -29,15 +29,10 @@ class Annotation():
   frame_dict = {}
   annotation_dict = {}
   group_map = {}
-  tile_width = None
-  tile_height = None
-  image_width = None
-  image_height = None
-  scale_x = 1.0
-  scale_y = 1.0
   annotations = []
 
   aesa_annotation = namedtuple("Annotation", ["category", "group", "x", "y", "pad", "filename", "length"])
+  image_metadata = namedtuple("Metadata", ["tile_width", "tile_height", "bins_y", "image_width", "image_height"])
 
   def __init__(self, group_file = None):
       print('Parsing ' + conf.ANNOTATION_FILE)
@@ -85,11 +80,11 @@ class Annotation():
 
               a = self.correct(a)
               if group_file:
-                a = a._replace(category=self.group_map[a.category.upper()])
+                a = a._replace(group=self.group_map[a.category.upper()])
               self.annotations.append(a)
-              #ntest += 1
-              #if ntest > 1000:
-              #  break;
+              ntest += 1
+              if ntest > 1000:
+                break;
 
           except Exception as ex:
               print("Error processing annotation row {0} filename {1} \n".format(index, filename))
@@ -102,7 +97,7 @@ class Annotation():
       '''
       for a in self.annotations:
           try:
-              obj, filename = self.annotation_to_dict(a)
+              obj, filename = self.annotation_to_dict(a, True)
               head, tail = os.path.split(filename)
               key = tail.split('.')[0]
               if key not in self.annotation_dict.keys():
@@ -121,7 +116,7 @@ class Annotation():
               print('Appending object to key {0}'.format(key))
               self.annotation_dict[key]['object'].append(obj)
           except Exception as ex:
-              print("Error converting annotation {0} to dictionary \n".format(a.filename))
+              print("Error converting annotation {0} to dictionary".format(a.filename))
               continue
 
   def get_dict(self):
@@ -143,31 +138,24 @@ class Annotation():
       for a in self.annotations:
           try:
 
-              # filename = '{0}/data/{1}'.format(os.getcwd(), 'M56_10441297_12987348614060.jpg' )
-
-              # get image height and width of raw tile; only do this once assuming all times are the same
-              if self.image_width is None and self.image_height is None:
-                  self.image_height, self.image_width = image_utils.get_dims(a.filename)
-                  n_tilesh = 10
-                  n_tilesw = 1
+              n_tilesh = 10
+              n_tilesw = 1
 
               head, tail = os.path.split(a.filename)
               key = tail.split('.')[0]
 
               # if haven't converted tiles to smaller grid, convert
               if key not in self.frame_dict.keys():
-                  self.frame_dict[key] = 1
+                  image_height, image_width = image_utils.get_dims(a.filename)
                   image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
                       print('Converting {0} into tiles'.format(a.filename))
                       os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
                               .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
-                  if not self.tile_height and not self.tile_width:
-                      self.tile_height, self.tile_width = image_utils.get_dims(image_file)
-                  self.bins_y = numpy.arange(start=0, stop=self.image_height - self.tile_height, step=self.tile_height - 1)
-                  self.scale_x = conf.TARGET_TILE_WIDTH/self.tile_width
-                  self.scale_y = conf.TARGET_TILE_HEIGHT/self.tile_height
+                  tile_height, tile_width = image_utils.get_dims(image_file)
+                  bins_y = numpy.arange(start=0, stop=image_height - tile_height, step=tile_height - 1)
+                  self.frame_dict[key] = self.image_metadata(tile_width=tile_width, tile_height=tile_height, image_width=image_width, image_height=image_height, bins_y=bins_y)
 
           except Exception as ex:
             print("Error converting image {0} \n".format(a.filename))
@@ -192,7 +180,7 @@ class Annotation():
       return annotation
 
 
-  def annotation_to_dict(self, annotation, optimize_box=False):
+  def annotation_to_dict(self, annotation,  optimize_box=False):
     '''
      Corrects annotation bounding box and converts annotation to dictionary
     :param annotation: annotation tuple
@@ -201,33 +189,35 @@ class Annotation():
     '''
 
     head, tail = os.path.split(annotation.filename)
-    stem = tail.split('.')[0]
+    key = tail.split('.')[0]
+    metadata = self.frame_dict[key]
     posx = 1
-    posy = numpy.digitize(annotation.y, self.bins_y)
+    posy = numpy.digitize(annotation.y, metadata.bins_y)
 
     # calculate what image index the annotations should fall into
-    index = (posy - 1) * int(self.image_width / self.tile_width) + (posx - 1)
+    index = (posy - 1) * int(metadata.image_width / metadata.tile_width) + (posx - 1)
 
     # http://www.imagemagick.org/Usage/crop/#crop_equal
     #print('Index: {0} center x {1} centery {2}'.format(index, values_x, values_y))
-    src_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, stem, index)
-    dst_file = '{0}/{1}_{2:02}.png'.format(conf.PNG_DIR, stem, index)
+    src_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, index)
+    dst_file = '{0}/{1}_{2:02}.png'.format(conf.PNG_DIR, key, index)
     temp_file = '/tmp/temp.png'
 
     copyfile(src_file, temp_file)
 
     length = conf.MIN_CROP
     if annotation.length < conf.MIN_CROP:
-      length = conf.MIN_CROP  # to prevent generating really small crops
-    center_x = annotation.x - (posx - 1) * self.tile_width
-    center_y = annotation.y - (posy - 1) * self.tile_height
+      length = conf.MIN_CROP  # to prevent really small objects
+    center_x = annotation.x - (posx - 1) * metadata.tile_width
+    center_y = annotation.y - (posy - 1) * metadata.tile_height
     tlx = int(max(0, int(center_x - (length/2) - annotation.pad)))
     tly = int(max(0, int(center_y - (length/2) - annotation.pad)))
-    brx = int(min(self.tile_width ,center_x + (length/2) + annotation.pad))
-    bry = int(min(self.tile_height ,center_y + (length/2) + annotation.pad))
+    brx = int(min(metadata.tile_width ,center_x + (length/2) + annotation.pad))
+    bry = int(min(metadata.tile_height ,center_y + (length/2) + annotation.pad))
 
     img = cv2.imread(temp_file)
-    if optimize_box == True:
+
+    if optimize_box == True and (brx - tlx) > conf.MIN_CROP and (bry - tly) > conf.MIN_CROP:
       crop_img = img[tly:bry, tlx:brx]
       gray_image = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
 
@@ -244,9 +234,10 @@ class Annotation():
 
       # first try Otsu
       #cv2.imshow('Otsu', clean)
-      found, x, y, w, h = image_utils.find_object(clean, crop_img)
+      if 'CNIDARIA' not in annotation.category and 'OPHIUR' not in annotation.category:
+        found, x, y, w, h = image_utils.find_object(clean, crop_img)
 
-      if not found and 'CNIDARIA' not in annotation.category and 'OPHIUR' not in annotation.category:
+      if not found:
           # Next try threshold in increments of 2
           for thresh in range(3, 13, 2):
             th = cv2.adaptiveThreshold(th, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
@@ -256,32 +247,42 @@ class Annotation():
             if found:
               break;
 
+      cv2.destroyAllWindows()
+      cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
+      cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
+
       if found:
         # adjust the actual bounding box with new localized bounding box coordinates
         tlx += x;
         tly += y;
         brx = tlx + w;
         bry = tly + h;
-  
-      '''cv2.destroyAllWindows()
-      cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
-      font = cv2.FONT_HERSHEY_SIMPLEX
-      cv2.putText(img, annotation.category, (tlx, tly), font, 2, (255, 255, 255), 2)
-      cv2.namedWindow('Annotation', cv2.WINDOW_NORMAL)
-      cv2.imshow("Annotation", img)
-      cv2.resizeWindow('Annotation', conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
-      cv2.waitKey(5000)'''
+        cv2.rectangle(img, (tlx, tly), (brx, bry), (255, 0, 0), 3)
+
+    cv2.imshow("Annotation", img)
+    cv2.resizeWindow('Annotation', 1000,1000)#conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
+    cv2.waitKey(15000)
 
     obj = {}
-    obj['name'] = annotation.category
+    scale_x = conf.TARGET_TILE_WIDTH/metadata.tile_width
+    scale_y = conf.TARGET_TILE_HEIGHT/metadata.tile_height
+    if annotation.group:
+      obj['name'] = annotation.group
+    else:
+      obj['name'] = annotation.category
     obj['difficult'] = conf.DIFFICULT
     obj['truncated'] = 0
     obj['pose'] = conf.POSE
     obj['bndbox'] = {}
-    obj['bndbox']['xmin'] = max(int(self.scale_x*tlx), conf.TARGET_TILE_WIDTH)
-    obj['bndbox']['ymin'] = max(int(self.scale_y*tly), conf.TARGET_TILE_HEIGHT)
-    obj['bndbox']['xmax'] = max(int(self.scale_x*brx), conf.TARGET_TILE_WIDTH)
-    obj['bndbox']['ymax'] = max(int(self.scale_y*bry), conf.TARGET_TILE_HEIGHT)
+    obj['bndbox']['xmin'] = min(int(scale_x*tlx), conf.TARGET_TILE_WIDTH-1)
+    obj['bndbox']['ymin'] = min(int(scale_y*tly), conf.TARGET_TILE_HEIGHT-1)
+    obj['bndbox']['xmax'] = min(int(scale_x*brx), conf.TARGET_TILE_WIDTH-1)
+    obj['bndbox']['ymax'] = min(int(scale_y*bry), conf.TARGET_TILE_HEIGHT-1)
+
+    if obj['bndbox']['xmin'] == obj['bndbox']['xmax'] or obj['bndbox']['ymin'] == obj['bndbox']['ymax']:
+      raise Exception("Object too small. Annotation {0}".format(annotation.filename))
 
     if not os.path.exists(dst_file):
       # calculate the mean of all non black pixels
@@ -289,7 +290,7 @@ class Annotation():
       img_float[np.where((img_float == [0, 0, 0]).all(axis=2))] = [np.nan, np.nan, np.nan]
       average_color = np.nanmean(img_float, axis=(0,1))
 
-      # replace black pizels with the mean
+      # replace black pixels with the mean
       average_color = np.uint8(average_color)
       img[np.where((img == [0, 0, 0]).all(axis=2))] = average_color
       resized_img = cv2.resize(img, (conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT))
