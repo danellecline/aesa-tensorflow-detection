@@ -70,12 +70,16 @@ python create_tfrecord.py
     --output_path aesa_BENTHIC_2017_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
 ```    
 
-## Download COCO-pretrained model for transfer learning
+## Download pretrained models for transfer learning
 ``` bash
 mkdir -p models/
 cd models
-curl http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_08_2017.tar.gz > faster_rcnn_resnet101_coco_11_08_2017.tar.gz
+curl http://download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_2017_11_08.tar.gz > faster_rcnn_resnet101_coco_11_08_2017.tar.gz
 tar -xvf faster_rcnn_resnet101_coco_11_08_2017.tar.gz 
+
+# optional if you have enough memory
+curl http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz > faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz
+tar -xvf faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz  
 ```
     
 ### Edit the pipeline.config file
@@ -98,15 +102,15 @@ python tensorflow_models/research/object_detection/eval.py \
     --checkpoint_dir=`pwd`/models/checkpoints/ \
     --eval_dir=PATH_TO_EVAL_DIR
 ```
+ 
 
-## Bug fix
-add to tensorflow_models/research/object_detection/core/preprocessor.py 
-mean = list(mean) before lines 1474.
-https://www.bountysource.com/issues/48005318-bug-change-protobuf-to-list-in-object-detection-api
+## For raw annoations
+Found 11748 examples in train set
+Found 3057 examples in test set
 
-## 
-Found 13919 examples in train set
-Found 3443 examples in test set
+*Optimized* using conf.
+Done. Found 13906 examples in train set
+Done. Found 3462 examples in test set
 
 ## Developer Notes
 

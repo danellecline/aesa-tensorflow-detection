@@ -1,6 +1,8 @@
 
 TOP_DIR = '/Users/dcline/Dropbox/GitHub/aesa-tensorflow-detection/'
-
+#OPTIMIZE_BOX = True
+#COLLECTION = 'M56_optimized'
+OPTIMIZE_BOX = False
 COLLECTION = 'M56'
 DATA_DIR = '{0}/data/'.format(TOP_DIR)
 ANNOTATION_DIR = '{0}/{1}/Annotations/'.format(DATA_DIR, COLLECTION)
