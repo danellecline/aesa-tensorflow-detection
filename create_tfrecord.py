@@ -182,7 +182,10 @@ def main(_):
     file = os.path.join(annotations_dir, example)
     with open(file, 'r') as fid:
       xml_str = fid.read()
-    xml = etree.fromstring(xml_str)
+    try:
+      xml = etree.fromstring(xml_str)
+    except Exception as ex:
+      print(ex)
     data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
     tf_example, num_objs = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, conf.PNG_DIR)
     if tf_example:
