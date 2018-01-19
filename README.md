@@ -4,8 +4,7 @@ Code for testing Tensorflow detection API on on AESA data
 
 ## Prerequisites
  
-- Python version  3.5, on a Mac OSX download and install from here:
- https://www.python.org/downloads/mac-osx/
+- Python version  3.5
 - [Protobuf](https://developers.google.com/protocol-buffers/
 - Packages: python-tk e.g. apt-get install python3.5-tk,  
 
@@ -104,17 +103,17 @@ python tensorflow_models/research/object_detection/eval.py \
 ```
  
 
-## For raw annoations
-Found 11748 examples in train set
-Found 3057 examples in test set
+## Annotation totals
+For raw annoations
+*  11748 examples in train set
+*  3057 examples in test set
 
-*Optimized* using conf.
-Done. Found 13906 examples in train set
-Done. Found 3462 examples in test set
+*Optimized* 
+Using conf.OPTIMIZE_BOX
+*  13906 examples in train set
+*  3462 examples in test set
 
 ## Developer Notes
-
-TF_CONFIG - environment variable
 
 A placeholder for notes that might be useful for developers
 * Pre processing options [https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
