@@ -36,6 +36,7 @@ if __name__ == '__main__':
     ensure_dir(conf.DATA_DIR)
     ensure_dir(conf.ANNOTATION_DIR)
     ensure_dir(conf.PNG_DIR)
+    ensure_dir(conf.TILE_PNG_DIR)
     ttl_objs = 0
 
     try:
