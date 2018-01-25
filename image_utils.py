@@ -20,19 +20,22 @@ import subprocess
 import cv2
 
 
-def find_object(image_bin, image_color):
+def find_object(image_bin, image_color, max_area):
   """
   find object blob and return its coordinates
   :param image: the image in opencv format
+  :param max_area: maximum area of blob
   :return: x, y, w, h in the input image coordinates
   """
   invert = cv2.bitwise_not(image_bin);
-  cv2.imshow('invert', invert)
+  #cv2.imshow('invert', invert)
+  #cv2.waitKey(500)
 
   # get blobs
   im, contours, heirachy = cv2.findContours(invert, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
   img = cv2.drawContours(invert, contours, -1, (0, 255, 0), 7)
-  cv2.imshow('contours', img)
+  #cv2.imshow('contours', img)
+  #cv2.waitKey(500)
 
   # keep valid contours
   valid_contours = []
@@ -42,13 +45,14 @@ def find_object(image_bin, image_color):
       # get rectangle bounding contour
       [x, y, w, h] = cv2.boundingRect(c)
       area = cv2.contourArea(c)
-      print("area {0} x {1} y {2} w {3} h {4}".format(area, x, y, w, h))
-      # get valid areas, not blobs along the edge or noise
-      if area > 1000 and area < 6000:
+      #print("area {0} x {1} y {2} w {3} h {4}".format(area, x, y, w, h))
+      # get valid areas, not small blobs
+      if area > 2000 and area < max_area :
         pt = [float(y), float(y)]
         cn = contours[cnt]
         img = cv2.drawContours(image_color, [cn], 0, (255, 0, 0), 5)
         cv2.imshow('Possible', img)
+        cv2.waitKey(500)
         valid_contours.append(c)
       cnt += 1
 
