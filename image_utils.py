@@ -51,8 +51,8 @@ def find_object(image_bin, image_color, max_area):
         pt = [float(y), float(y)]
         cn = contours[cnt]
         img = cv2.drawContours(image_color, [cn], 0, (255, 0, 0), 5)
-        cv2.imshow('Possible', img)
-        cv2.waitKey(500)
+        #cv2.imshow('Possible', img)
+        #cv2.waitKey(500)
         valid_contours.append(c)
       cnt += 1
 
