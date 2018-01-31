@@ -13,6 +13,7 @@ Converts the tiles into a grid and adjusts the annotation to map to this new coo
 @status: production
 @license: GPL
 '''
+import csv
 import cv2
 import numpy
 import pandas as pd
@@ -32,17 +33,25 @@ class Annotation():
   annotation_dict = {}
   group_map = {}
   annotations = []
+  missing_frames = []
 
   aesa_annotation = namedtuple("Annotation", ["category", "group", "heirarchical_group", "x", "y", "pad",
                                               "filename", "length"])
   image_metadata = namedtuple("Metadata", ["tile_width", "tile_height", "bins_x", "bins_y", "image_width",
                                            "image_height", "crop_left", "crop_right", "rotate"])
 
-  def __init__(self, group_file = None):
+  def __init__(self, clean_file = None, group_file = None):
       print('Parsing ' + conf.ANNOTATION_FILE)
       self.df_annotations = pd.read_csv(conf.ANNOTATION_FILE, sep=',')
       self.csv_file = conf.ANNOTATION_FILE[conf.ANNOTATION_FILE.rfind("/") + 1:]
       self.frame_dict = {}
+      crop_index = pd.DataFrame()
+      morphotype = pd.DataFrame()
+      if clean_file:
+        print('Parsing ' + clean_file)
+        df_clean = pd.read_csv(clean_file, sep=',')
+        crop_index = df_clean['CropNo']
+        reassigned_category = df_clean['Reassigned.value']
 
       if group_file:
           print('Parsing ' + group_file)
@@ -59,8 +68,10 @@ class Annotation():
       for index, row in self.df_annotations.iterrows():
           try:
               f = row['FileName']
+              if isinstance(f, str) and '.' in f:
+                f = f.replace('.', '')  # handle last . sometimes found Filename column
               if conf.FILE_FORMAT:
-                filename = os.path.join(conf.TILE_DIR, '{0}{1}.jpg'.format(conf.FILE_FORMAT, f))
+                filename = os.path.join(conf.TILE_DIR, conf.FILE_FORMAT % f)
               else:
                 filename = os.path.join(conf.TILE_DIR, f)
 
@@ -77,6 +88,15 @@ class Annotation():
                 group = row["group"].upper()
               except:
                 pass
+
+              if index in crop_index.values:
+                idx = np.where(crop_index == index)
+                new_category = reassigned_category.iloc[idx[0]].values[0]
+                print('Correction index {0} category {1} to {2}'.format(idx[0], category, new_category))
+                if new_category == 'Remove':
+                  continue
+                category = new_category.upper()
+
               x = int(row["CentreX"])
               y = int(row["CentreY"])
               length = float(row["Measurement"])
@@ -95,15 +115,15 @@ class Annotation():
               self.annotations.append(a)
               #if a.category in conf.OPTIMIZED_CATEGORIES:
               #  self.annotations.append(a)
-              #ntest += 1
-              #if ntest > 1000:
-              #  break;
+              ntest += 1
+              if ntest > 50:
+                break;
               #self.annotations.append(a)
-
               #  break;
 
           except Exception as ex:
               print("Error processing annotation row {0} filename {1} \n".format(index, filename))
+
 
   def aggregate(self):
       '''
@@ -111,6 +131,8 @@ class Annotation():
         Requires images to be generated first with generate_tiles().
       :return:
       '''
+      csv_file = '{0}_missing.csv'.format(conf.COLLECTION)
+
       for a in self.annotations:
           try:
               obj, filename = self.annotation_to_dict(a)
@@ -134,6 +156,10 @@ class Annotation():
           except Exception as ex:
               print("Error converting annotation {0} to dictionary. {1}".format(a.filename, ex))
               continue
+
+      a = np.asarray(self.missing_frames)
+      a.tofile(csv_file,sep=',',format='%s')
+
 
   def get_dict(self):
       '''
@@ -160,7 +186,10 @@ class Annotation():
               key = tail.split('.')[0]
 
               # if haven't converted tiles to smaller grid, convert
-              if key not in self.frame_dict.keys():
+              if key not in self.frame_dict.keys() and tail not in self.missing_frames :
+                  if not os.path.exists(str(a.filename)):
+                    self.missing_frames.append(tail)
+                    continue
                   image_height, image_width = image_utils.get_dims(a.filename)
                   if image_height < 300 or image_width < 300:
                     raise Exception('image {0} height {1} or width {2} too small'.format(a.filename, image_width, image_height))
@@ -318,7 +347,7 @@ class Annotation():
       cv2.namedWindow(title, cv2.WINDOW_NORMAL)
       cv2.resizeWindow(title, conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT)
       cv2.imshow(title, img)
-      cv2.waitKey(1000)
+      cv2.waitKey(5000)
 
   def annotation_to_dict(self, annotation):
     '''
@@ -357,15 +386,30 @@ class Annotation():
     # convert coordinates using default tile width/height
     brx, bry, tlx, tly = self.convert_coords(metadata, annotation, bin_x, bin_y)
     self.show_annotation('raw', annotation.category, src_file, brx, bry, tlx, tly)
-
     if not os.path.exists(rescaled_file) or (metadata.crop_left == 0 and metadata.crop_right == 0):
-      brx, bry, crop_left, crop_right, metadata_new, tlx, tly = self.rotate_crop_scale(annotation, bin_x, bin_y, brx,
+      crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
+      if os.path.exists(crop_coord):
+          print('Loading {0}'.format(crop_coord))
+          with open(crop_coord, 'r') as in_file:
+            reader = csv.reader(in_file)
+            row = next(reader)
+            metadata_new = metadata._replace(crop_left=int(row[0]), crop_right=int(row[1]))
+      else:
+          brx, bry, metadata_new, tlx, tly = self.rotate_crop(annotation, bin_x, bin_y, brx,
                                                                                        bry, cropped_file, metadata,
                                                                                        rescaled_file, src_file,
                                                                                        tlx, tly)
+
+          with open(crop_coord, 'w') as out:
+            csv_out = csv.writer(out)
+            csv_out.writerow([metadata_new.crop_left, metadata_new.crop_right])
+
+
       self.frame_dict[key] = metadata_new
 
     metadata = self.frame_dict[key]
+
+    shutil.copyfile(cropped_file, rescaled_file)
 
     if metadata.rotate:
       tile_width = metadata.tile_height
@@ -378,8 +422,8 @@ class Annotation():
     if tlx > tile_width - metadata.crop_right or tlx < metadata.crop_left:
       raise Exception('{0} tlx {1} falls outside of cropped image bounds {2} {3}'.format(annotation.category, tlx,
                                                                                          tile_width,
-                                                                                         tile_width - crop_right,
-                                                                                         tile_width + crop_left))
+                                                                                         tile_width - metadata.crop_right,
+                                                                                         tile_width + metadata.crop_left))
 
 
     # optimize if needed
@@ -390,6 +434,10 @@ class Annotation():
     # adjust coordinates to cropped tile
     tlx -= metadata.crop_left
     brx -= metadata.crop_left
+
+    #if not os.path.exists(rescaled_file):
+    self.scale(cropped_file,rescaled_file)
+    self.show_annotation('cropped', annotation.category, cropped_file, brx, bry, tlx, tly)
 
     # Calculate scaled coordinates
     obj = {}
@@ -414,13 +462,14 @@ class Annotation():
     obj['bndbox']['xmax'] = brx
     obj['bndbox']['ymax'] = bry
 
-    if obj['bndbox']['xmin'] == obj['bndbox']['xmax'] or obj['bndbox']['ymin'] == obj['bndbox']['ymax']:
+    if tlx == brx or tly == bry:
       raise Exception("Object too small. Annotation {0}".format(annotation.filename))
 
-    self.show_annotation('final', annotation.category, rescaled_file, brx, bry, tlx, tly)
+    if os.path.exists(rescaled_file):
+      self.show_annotation('final', annotation.category, rescaled_file, brx, bry, tlx, tly)
     return obj, rescaled_file
 
-  def rotate_crop_scale(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, rescaled_file, src_file,
+  def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, rescaled_file, src_file,
                         tlx, tly):
 
     temp_file = tempfile.mktemp('temp.png', dir='/tmp')
@@ -442,13 +491,16 @@ class Annotation():
       crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_height, metadata.tile_width, cropped_file)
     else:
       crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_width, metadata.tile_height, cropped_file)
+    
+    metadata_new = metadata._replace(crop_left=crop_left, crop_right=crop_right)
+    return brx, bry, metadata_new, tlx, tly
+
+  def scale(self, cropped_file, rescaled_file):
     # convert cropped image to the model size
     cmd = '/usr/local/bin/convert {0} -scale {1}x{2}\! "{3}"'.format(cropped_file, conf.TARGET_TILE_WIDTH,
                                                                      conf.TARGET_TILE_HEIGHT, rescaled_file)
     print('Running {0}'.format(cmd))
     os.system(cmd)
-    metadata_new = metadata._replace(crop_left=crop_left, crop_right=crop_right)
-    return brx, bry, crop_left, crop_right, metadata_new, tlx, tly
 
   def optimize(self, annotation, brx, bry, kernel3, src_crop, tlx, tly):
 
