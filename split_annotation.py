@@ -1,6 +1,5 @@
 import utils
 import os
-import conf
 
 if __name__ == '__main__':
 

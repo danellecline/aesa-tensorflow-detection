@@ -46,7 +46,7 @@ class Annotation():
       self.csv_file = conf.ANNOTATION_FILE[conf.ANNOTATION_FILE.rfind("/") + 1:]
       self.frame_dict = {}
       crop_index = pd.DataFrame()
-      morphotype = pd.DataFrame()
+
       if clean_file:
         print('Parsing ' + clean_file)
         df_clean = pd.read_csv(clean_file, sep=',')
@@ -203,17 +203,11 @@ class Annotation():
                   image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
-                    raise('Skipping tile conversion for {0}'.format(image_file))
-
                     print('Converting {0} into tiles'.format(a.filename))
                     if image_height > image_width:
-                        cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key)
-                        print('Running {0}'.format(cmd))
                         os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
                             .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
                     else:
-                        cmd = '/usr/local/bin/convert "{0}" -crop {2}x{1}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key)
-                        print('Running {0}'.format(cmd))
                         os.system('/usr/local/bin/convert "{0}" -crop {2}x{1}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
                             .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
 

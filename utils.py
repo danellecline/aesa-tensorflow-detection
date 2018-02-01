@@ -1,7 +1,5 @@
-import glob
 import os
-import random
-import utils
+
 
 def ensure_dir(d):
   """
@@ -29,7 +27,7 @@ def split(collection_dir, train_per, test_per):
       path, filename = os.path.split(xml_in)
       annotations.append(filename)
 
-  print('Found {0} xml annotations in the collection {1}'.format(len(annotations), collection_dir))
+  print('Found {0} xml annotations in {1}'.format(len(annotations), collection_dir))
 
   # split randomly; note that this may not give an even split on
   # all classes, as it's split by filename, and not the objects in the frame
