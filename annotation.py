@@ -40,7 +40,7 @@ class Annotation():
   image_metadata = namedtuple("Metadata", ["tile_width", "tile_height", "bins_x", "bins_y", "image_width",
                                            "image_height", "crop_left", "crop_right", "rotate"])
 
-  def __init__(self, clean_file = None, group_file = None):
+  def __init__(self, clean_file = None, group_file = None, heirarchy_file = None):
       print('Parsing ' + conf.ANNOTATION_FILE)
       self.df_annotations = pd.read_csv(conf.ANNOTATION_FILE, sep=',')
       self.csv_file = conf.ANNOTATION_FILE[conf.ANNOTATION_FILE.rfind("/") + 1:]
@@ -53,16 +53,25 @@ class Annotation():
         crop_index = df_clean['CropNo']
         reassigned_category = df_clean['Reassigned.value']
 
-      if group_file:
-          print('Parsing ' + group_file)
-          self.df_group = pd.read_csv(group_file, sep=',')
-          for index, row in self.df_group.iterrows():
+      if heirarchy_file:
+          print('Parsing ' + heirarchy_file)
+          df = pd.read_csv(heirarchy_file, sep=',')
+          for index, row in df.iterrows():
               if np.isnan(float(row['coarse_class'])):
                   print('Category {0} does not have a group'.format(row['category']))
               else:
                   # GROUP1, GROUP2, 1-based indexing
                   print('Grouping category {0} as GROUP{1}'.format(row['category'], int(row['coarse_class']) + 1))
                   self.group_map[row['category']] = 'GROUP{:d}'.format(int(row['coarse_class']) + 1)
+
+      if group_file:
+        print('Parsing ' + group_file)
+        df = pd.read_csv(group_file, sep=',')
+        for index, row in df.iterrows():
+          # 1-based indexing
+          category = row.Category
+          group = row.Group
+          self.group_map[category.upper()] = group.upper()
 
       ntest = 0
       for index, row in self.df_annotations.iterrows():
@@ -75,12 +84,7 @@ class Annotation():
               else:
                 filename = os.path.join(conf.TILE_DIR, f)
 
-              #M56_10441297_12987357703097_02.png
-              #if 'M56_10441297_12987357737473' not in filename:
-              #if 'M56_10441297_12987367202067' not in filename:
-              #  continue
-
-              print('Processing row {0} filename {1} annotation {2}'.format(index, filename, row['Category']))
+              #print('Processing row {0} filename {1} annotation {2}'.format(index, filename, row['Category']))
 
               category = row["Category"].upper()
               group = None
@@ -110,14 +114,16 @@ class Annotation():
 
               a = self.correct(a)
               if group_file:
+                a = a._replace(group=self.group_map[a.category.upper()])
+              if heirarchy_file:
                 a = a._replace(heirarchical_group=self.group_map[a.category.upper()])
 
               self.annotations.append(a)
               #if a.category in conf.OPTIMIZED_CATEGORIES:
               #  self.annotations.append(a)
-              ntest += 1
-              if ntest > 50:
-                break;
+              #ntest += 1
+              #if ntest > 50:
+              #  break;
               #self.annotations.append(a)
               #  break;
 
@@ -197,11 +203,17 @@ class Annotation():
                   image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
+                    raise('Skipping tile conversion for {0}'.format(image_file))
+
                     print('Converting {0} into tiles'.format(a.filename))
                     if image_height > image_width:
+                        cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key)
+                        print('Running {0}'.format(cmd))
                         os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
                             .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
                     else:
+                        cmd = '/usr/local/bin/convert "{0}" -crop {2}x{1}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'.format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key)
+                        print('Running {0}'.format(cmd))
                         os.system('/usr/local/bin/convert "{0}" -crop {2}x{1}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
                             .format(a.filename, n_tilesw, n_tilesh, conf.TILE_PNG_DIR, key));
 
@@ -385,7 +397,7 @@ class Annotation():
 
     # convert coordinates using default tile width/height
     brx, bry, tlx, tly = self.convert_coords(metadata, annotation, bin_x, bin_y)
-    self.show_annotation('raw', annotation.category, src_file, brx, bry, tlx, tly)
+    self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
     if not os.path.exists(rescaled_file) or (metadata.crop_left == 0 and metadata.crop_right == 0):
       crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
       if os.path.exists(crop_coord):
@@ -408,8 +420,6 @@ class Annotation():
       self.frame_dict[key] = metadata_new
 
     metadata = self.frame_dict[key]
-
-    shutil.copyfile(cropped_file, rescaled_file)
 
     if metadata.rotate:
       tile_width = metadata.tile_height
@@ -435,9 +445,14 @@ class Annotation():
     tlx -= metadata.crop_left
     brx -= metadata.crop_left
 
-    #if not os.path.exists(rescaled_file):
-    self.scale(cropped_file,rescaled_file)
-    self.show_annotation('cropped', annotation.category, cropped_file, brx, bry, tlx, tly)
+    if os.path.exists(rescaled_file):
+      w, h = image_utils.get_dims(rescaled_file)
+      if w != conf.TARGET_TILE_WIDTH and h != conf.TARGET_TILE_HEIGHT:
+        os.remove(rescaled_file)
+        self.scale(cropped_file,rescaled_file)
+    else:
+        self.scale(cropped_file,rescaled_file)
+    #self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
 
     # Calculate scaled coordinates
     obj = {}
@@ -451,6 +466,8 @@ class Annotation():
     # store in dictionary to dump to xml
     if annotation.heirarchical_group:
       obj['name'] = annotation.heirarchical_group
+    if annotation.group:
+      obj['name'] = annotation.group
     else:
       obj['name'] = annotation.category
     obj['difficult'] = conf.DIFFICULT
@@ -466,7 +483,7 @@ class Annotation():
       raise Exception("Object too small. Annotation {0}".format(annotation.filename))
 
     if os.path.exists(rescaled_file):
-      self.show_annotation('final', annotation.category, rescaled_file, brx, bry, tlx, tly)
+      self.show_annotation('final', annotation.group, rescaled_file, brx, bry, tlx, tly)
     return obj, rescaled_file
 
   def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, rescaled_file, src_file,
@@ -479,7 +496,7 @@ class Annotation():
       os.system(cmd)
       print('Running {0}'.format(cmd))
       brx, bry, tlx, tly = self.convert_coords(metadata, annotation, bin_x, bin_y, True)
-      self.show_annotation('rotated', annotation.category, temp_file, brx, bry, tlx, tly)
+      self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
     else:
       shutil.copyfile(src_file, temp_file)
     # crop and store left/right offsets; TODO: add top/bottom crop
