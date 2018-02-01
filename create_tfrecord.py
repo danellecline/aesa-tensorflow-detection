@@ -41,7 +41,7 @@ def process_command_line():
   from argparse import RawTextHelpFormatter
 
   examples = 'Examples:' + '\n\n'
-  examples += 'Create record for xml files in /Volumes/DeepLearningTests/nyee_datasets/frcnn_data/:\n'
+  examples += 'Create record for xml files :\n'
   examples += '{0} --data_dir /Users/dcline/Dropbox/GitHub/mbari-tensorflow-detection/data/ --collection ' \
               'M56 --output_path M56_test.record --label_map_path aesa_k5_label_map.pbtxt' \
               '--set test '.format(sys.argv[0])
@@ -49,11 +49,9 @@ def process_command_line():
                                    description='Creates Tensorflow Record object for annotated data',
                                    epilog=examples)
   parser.add_argument('-d', '--data_dir', action='store', help='Root directory to raw dataset', required=True)
-  parser.add_argument('-c', '--collection', action='store', help='Name of the collection. Also the subdirectory name '
-                                                                 'for the raw dataset', default='M56',
-                      required=False)
-  parser.add_argument('-a', '--annotations_dir', action='store', help='(Relative) path to annotations directory',
-                      default='Annotations', required=False)
+  parser.add_argument('-c', '--collection', action='store', help='List of space seprated collections to combine.'
+                                                                 ' Also the subdirectory name for the raw dataset',
+                      nargs='*', default=['M56_960x540_by_group', 'M56_600x600_by_group'], required=True)
   parser.add_argument('-o', '--output_path', action='store', help='Path to output TFRecord', required=True)
   parser.add_argument('-l', '--label_map_path', action='store', help='Path to label map proto', required=True)
   parser.add_argument('-s', '--set', action='store', help='Convert training set, validation set or merged set.',
@@ -167,32 +165,35 @@ def main(_):
 
   writer = tf.python_io.TFRecordWriter(output)
   label_map_dict = label_map_util.get_label_map_dict(os.path.join(args.data_dir, args.label_map_path))
-  print('Reading from {0} dataset.'.format(args.collection))
-  examples_path = os.path.join(args.data_dir, args.collection, args.set + '.txt')
-  annotations_dir = os.path.join(args.data_dir, args.collection, args.annotations_dir)
 
-  with open(examples_path) as fid:
-    lines = fid.readlines()
-    examples_list = [line.strip() for line in lines]
+  for c in args.collection:
+    print('Reading from {0} dataset.'.format(c))
+    examples_path = os.path.join(args.data_dir, c, args.set + '.txt')
+    png_dir = '{0}/{1}/PNGImages'.format(args.data_dir, c)
+    annotations_dir = '{0}/{1}/Annotations'.format(args.data_dir, c)
 
-  ttl_objs = 0
-  for idx, example in enumerate(examples_list):
-    if idx % 10 == 0:
-      logging.info('Processing image %d of %d', idx, len(examples_list))
-    file = os.path.join(annotations_dir, example)
-    with open(file, 'r') as fid:
-      xml_str = fid.read()
-    try:
-      xml = etree.fromstring(xml_str)
-    except Exception as ex:
-      print(ex)
-    data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
-    tf_example, num_objs = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, conf.PNG_DIR)
-    if tf_example:
-      ttl_objs += num_objs
-      writer.write(tf_example.SerializeToString())
-    else:
-      logging.warn('No objects found in {0}'.format(example))
+    with open(examples_path) as fid:
+      lines = fid.readlines()
+      examples_list = [line.strip() for line in lines]
+
+    ttl_objs = 0
+    for idx, example in enumerate(examples_list):
+      if idx % 10 == 0:
+        logging.info('Processing image %d of %d', idx, len(examples_list))
+      file = os.path.join(annotations_dir, example)
+      with open(file, 'r') as fid:
+        xml_str = fid.read()
+      try:
+        xml = etree.fromstring(xml_str)
+      except Exception as ex:
+        print(ex)
+      data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
+      tf_example, num_objs = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
+      if tf_example:
+        ttl_objs += num_objs
+        writer.write(tf_example.SerializeToString())
+      else:
+        logging.warn('No objects found in {0}'.format(example))
 
   writer.close()
   print('Done. Found {0} examples in {1} set'.format(ttl_objs, args.set))

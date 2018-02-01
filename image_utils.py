@@ -19,7 +19,6 @@ import re
 import subprocess
 import cv2
 
-
 def find_object(image_bin, image_color, max_area):
   """
   find object blob and return its coordinates

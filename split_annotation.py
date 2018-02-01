@@ -4,7 +4,7 @@ import conf
 
 if __name__ == '__main__':
 
-    collections = [conf.COLLECTION_M56]
+    collections = ['M56_960x540_by_group', 'M56_600x600_by_group']
 
     for c in collections:
         dir = os.path.join(conf.DATA_DIR, c)
