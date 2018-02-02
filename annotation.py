@@ -203,6 +203,7 @@ class Annotation():
                   image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
+                    raise('Skipping converting {0} to tiles due to time constrain'.format(a.filename))
                     print('Converting {0} into tiles'.format(a.filename))
                     if image_height > image_width:
                         os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
@@ -513,7 +514,7 @@ class Annotation():
     print('Running {0}'.format(cmd))
     os.system(cmd)
 
-  def optimize(self, annotation, brx, bry, kernel3, src_crop, tlx, tly):
+  def optimize(self, annotation, brx, bry, src_crop, tlx, tly):
 
     kernel3 = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
     img = cv2.imread(src_crop)
