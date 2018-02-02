@@ -42,3 +42,20 @@ done
 sleep 12h
 tmux kill-session -t train
 tmux kill-session -t test
+
+models=( ["0"]="ssd_inception_v2_coco_600" ["1"]="ssd_inception_v2_coco_300")
+tmux new-session -d -s "train"
+GPU_IDX=2
+for gpu_index in $(seq 0 $(($GPU_IDX-1))); do
+  tmux_start_train ${gpu_index} \
+  ./run.sh ${models[gpu_index]} train ${gpu_index}
+done
+GPU_IDX=4
+models=( ["2"]="ssd_inception_v2_coco_600" ["3"]="ssd_inception_v2_coco_300")
+tmux new-session -d -s "test"
+for gpu_index in $(seq 2 $(($GPU_IDX-1))); do
+  tmux_start_test ${gpu_index} \
+done
+sleep 6h
+tmux kill-session -t train
+tmux kill-session -t test
