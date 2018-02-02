@@ -1,5 +1,6 @@
 import os
-
+import glob
+import random
 
 def ensure_dir(d):
   """
@@ -38,7 +39,7 @@ def split(collection_dir, train_per, test_per):
   train_data = annotations[:round(train_per * total)]
   test_data = annotations[:round(test_per * total)]
 
-  utils.ensure_dir(collection_dir)
+  ensure_dir(collection_dir)
   with open(os.path.join(collection_dir, 'train.txt'), 'w') as f:
       for l in train_data:
           path, filename = os.path.split(l)
