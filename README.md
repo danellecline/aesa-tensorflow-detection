@@ -114,6 +114,13 @@ Using conf.OPTIMIZE_BOX
 *  3462 examples in test set
 
 ## Developer Notes
+BUG in 
+tensorflow_models/research/object_detection/inference/detection_inference.py
+line 
+ with tf.gfile.Open(inference_graph_path, 'r') as graph_def_file:
+should be
+ with tf.gfile.Open(inference_graph_path, 'rb') as graph_def_file:
+for python3.x
 
 A placeholder for notes that might be useful for developers
 * Pre processing options [https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
