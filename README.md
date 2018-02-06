@@ -122,6 +122,13 @@ should be
  with tf.gfile.Open(inference_graph_path, 'rb') as graph_def_file:
 for python3.x
 
+# To evaluate model time, insert
+ t = time.perf_counter()
+ elapsed_time = time.perf_counter() - t
+ print('Elapsed time {0}'.format(t))
+in lines 84 and 91 of 
+tensorflow_models/research/object_detection/inference/infer_detections.py
+
 A placeholder for notes that might be useful for developers
 * Pre processing options [https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
 * Install your own dataset [https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md)
