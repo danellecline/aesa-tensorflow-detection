@@ -123,10 +123,26 @@ should be
 for python3.x
 
 # To evaluate model time, insert
+import csv
+import numpy as np
+ofile  = open('{0}_gputime.csv'.format(FLAGS.output_tfrecord_path), 'wt')
+writer = csv.writer(ofile)
+writer.writerow(['GPU Time'])
+times = []
+t = time.process_time()
+elapsed_time = time.process_time() - t
+if counter > 0 :
+      times.append(elapsed_time)
+      m = np.mean(np.array(times))
+      print('Elapsed time {0} mean {1}'.format(elapsed_time, m))
+
+m = np.mean(times)
+    writer.writerow(['{0}'.format(int(m*1000))])
+
  t = time.perf_counter()
  elapsed_time = time.perf_counter() - t
  print('Elapsed time {0}'.format(t))
-in lines 84 and 91 of 
+starting at lines 76 of
 tensorflow_models/research/object_detection/inference/infer_detections.py
 
 A placeholder for notes that might be useful for developers
