@@ -43,15 +43,15 @@ def process_command_line():
   examples = 'Examples:' + '\n\n'
   examples += 'Create record for xml files :\n'
   examples += '{0} --data_dir /Users/dcline/Dropbox/GitHub/mbari-tensorflow-detection/data/ --collection ' \
-              'M56 --output_path M56_test.record --label_map_path aesa_k5_label_map.pbtxt' \
-              '--set test '.format(sys.argv[0])
+              'M56_1000x1000_by_group M535455_1000x1000_by_group --output_path M5354556_1000x1000_by_group_test.record \
+               --label_map_path aesa_group_label_map.pbtxt -set test '.format(sys.argv[0])
   parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                    description='Creates Tensorflow Record object for annotated data',
                                    epilog=examples)
   parser.add_argument('-d', '--data_dir', action='store', help='Root directory to raw dataset', required=True)
   parser.add_argument('-c', '--collection', action='store', help='List of space seprated collections to combine.'
                                                                  ' Also the subdirectory name for the raw dataset',
-                      nargs='*', default=['M56_960x540_by_group', 'M56_600x600_by_group'], required=True)
+                      nargs='*', default=['M535455_1000x1000_by_group', 'M56_1000x1000_by_group'], required=True)
   parser.add_argument('-o', '--output_path', action='store', help='Path to output TFRecord', required=True)
   parser.add_argument('-l', '--label_map_path', action='store', help='Path to label map proto', required=True)
   parser.add_argument('-s', '--set', action='store', help='Convert training set, validation set or merged set.',
@@ -111,12 +111,13 @@ def dict_to_tf_example(data,
   truncated = []
   poses = []
   difficult_obj = []
-  num_objs = 0
+  label_count = {}
+  for item, k in label_map_dict.items():
+    label_count[item] = 0
 
   for obj in data['object']:
     if labels and obj['name'] not in labels:
       continue
-    num_objs += 1
     difficult = bool(int(obj['difficult']))
     difficult_obj.append(int(difficult))
     xmin.append(float(obj['bndbox']['xmin']) / width)
@@ -127,6 +128,8 @@ def dict_to_tf_example(data,
     classes.append(label_map_dict[obj['name']])
     truncated.append(int(obj['truncated']))
     poses.append(obj['pose'].encode('utf8'))
+
+    label_count[obj['name']] += 1
 
   example = tf.train.Example(features=tf.train.Features(feature={
     'image/height': dataset_util.int64_feature(height),
@@ -147,7 +150,7 @@ def dict_to_tf_example(data,
     'image/object/truncated': dataset_util.int64_list_feature(truncated),
     'image/object/view': dataset_util.bytes_list_feature(poses),
   }))
-  return example, num_objs
+  return example, label_count
 
 
 def main(_):
@@ -165,7 +168,9 @@ def main(_):
 
   writer = tf.python_io.TFRecordWriter(output)
   label_map_dict = label_map_util.get_label_map_dict(os.path.join(args.data_dir, args.label_map_path))
-
+  label_count = {}
+  for item, key in label_map_dict.items():
+    label_count[item] = 0
   for c in args.collection:
     print('Reading from {0} dataset.'.format(c))
     examples_path = os.path.join(args.data_dir, c, args.set + '.txt')
@@ -176,7 +181,6 @@ def main(_):
       lines = fid.readlines()
       examples_list = [line.strip() for line in lines]
 
-    ttl_objs = 0
     for idx, example in enumerate(examples_list):
       if idx % 10 == 0:
         logging.info('Processing image %d of %d', idx, len(examples_list))
@@ -188,14 +192,19 @@ def main(_):
       except Exception as ex:
         print(ex)
       data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
-      tf_example, num_objs = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
+      tf_example, count = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
       if tf_example:
-        ttl_objs += num_objs
+        for key, item in count.items():
+          label_count[key] += item
         writer.write(tf_example.SerializeToString())
       else:
         logging.warn('No objects found in {0}'.format(example))
 
   writer.close()
+  ttl_objs = 0
+  for key, item in label_count.items():
+    print('{0} {1}'.format(key, item))
+    ttl_objs += item
   print('Done. Found {0} examples in {1} set'.format(ttl_objs, args.set))
 
 
