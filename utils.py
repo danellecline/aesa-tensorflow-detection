@@ -37,7 +37,7 @@ def split(collection_dir, train_per, test_per):
 
   total = len(annotations)
   train_data = annotations[:round(train_per * total)]
-  test_data = annotations[:round(test_per * total)]
+  test_data = annotations[round(test_per * total):]
 
   ensure_dir(collection_dir)
   with open(os.path.join(collection_dir, 'train.txt'), 'w') as f:
