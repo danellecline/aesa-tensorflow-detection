@@ -21,45 +21,35 @@ item
 item
 {
  id:5
-  name: 'CTENOPHORA'
-}
-item
-{
- id:6
   name: 'ECHIURA'
 }
 item
 {
- id:7
+ id:6
   name: 'HOLOTHUROIDEA'
 }
 item
 {
- id:8
-  name: 'MOLLUSCA'
-}
-item
-{
- id:9
+ id:7
   name: 'OPHIUROIDEA'
 }
 item
 {
- id:10
+ id:8
   name: 'POLYCHAETA'
 }
 item
 {
- id:11
+ id:9
   name: 'PORIFERA'
 }
 item
 {
- id:12
+ id:10
   name: 'TUNICATA'
 }
 item
 {
- id:13
+ id:11
   name: 'UNKNOWN'
 }
