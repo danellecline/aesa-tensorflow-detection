@@ -24,7 +24,7 @@ def split(collection_dir, train_per, test_per):
 
   annotations = []
   for xml_in in glob.iglob(collection_dir + '/**/*.xml', recursive=True):
-      print('Found {0}'.format(xml_in))
+      #print('Found {0}'.format(xml_in))
       path, filename = os.path.split(xml_in)
       annotations.append(filename)
 
