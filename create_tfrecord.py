@@ -19,7 +19,6 @@ import hashlib
 import conf
 import io
 import os
-import logging
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models', 'research'))
 from lxml import etree
@@ -116,7 +115,8 @@ def dict_to_tf_example(data,
     label_count[item] = 0
 
   for obj in data['object']:
-    if labels and obj['name'] not in labels:
+    label = obj['name']
+    if labels and label not in label_map_dict:
       continue
     difficult = bool(int(obj['difficult']))
     difficult_obj.append(int(difficult))
@@ -125,11 +125,10 @@ def dict_to_tf_example(data,
     xmax.append(float(obj['bndbox']['xmax']) / width)
     ymax.append(float(obj['bndbox']['ymax']) / height)
     classes_text.append(obj['name'].encode('utf8'))
-    classes.append(label_map_dict[obj['name']])
+    classes.append(label_map_dict[label])
     truncated.append(int(obj['truncated']))
     poses.append(obj['pose'].encode('utf8'))
-
-    label_count[obj['name']] += 1
+    label_count[label] += 1
 
   example = tf.train.Example(features=tf.train.Features(feature={
     'image/height': dataset_util.int64_feature(height),
@@ -182,23 +181,24 @@ def main(_):
       examples_list = [line.strip() for line in lines]
 
     for idx, example in enumerate(examples_list):
-      if idx % 10 == 0:
-        logging.info('Processing image %d of %d', idx, len(examples_list))
+      if idx % 50 == 0:
+        print('Processing image {0} of {1}'.format(idx, len(examples_list)))
       file = os.path.join(annotations_dir, example)
       with open(file, 'r') as fid:
         xml_str = fid.read()
       try:
         xml = etree.fromstring(xml_str)
+        data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
+        tf_example, count = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
+        if tf_example:
+          for key, item in count.items():
+              label_count[key] += item
+          writer.write(tf_example.SerializeToString())
+        else:
+          print('No objects found in {0}'.format(example))
+
       except Exception as ex:
         print(ex)
-      data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
-      tf_example, count = dict_to_tf_example(data, args.data_dir, label_map_dict, args.labels, png_dir)
-      if tf_example:
-        for key, item in count.items():
-          label_count[key] += item
-        writer.write(tf_example.SerializeToString())
-      else:
-        logging.warn('No objects found in {0}'.format(example))
 
   writer.close()
   ttl_objs = 0
