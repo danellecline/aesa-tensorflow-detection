@@ -104,14 +104,37 @@ python tensorflow_models/research/object_detection/eval.py \
  
 
 ## Annotation totals
-For raw annoations
-*  11748 examples in train set
-*  3057 examples in test set
 
-*Optimized* 
-Using conf.OPTIMIZE_BOX
-*  13906 examples in train set
-*  3462 examples in test set
+TRAIN
+----
+POLYCHAETA 313
+CRINOIDEA 328
+ASTEROIDEA 46
+CNIDARIA 9504
+ARTHROPODA 76
+OPHIUROIDEA 4748
+TUNICATA 557
+UNKNOWN 235
+PORIFERA 451
+HOLOTHUROIDEA 598
+ECHIURA 128
+Done. Found 16984 examples in train set
+
+TEST
+----
+CNIDARIA 9539
+ARTHROPODA 64
+PORIFERA 424
+CRINOIDEA 347
+HOLOTHUROIDEA 623
+ASTEROIDEA 51
+OPHIUROIDEA 4766
+TUNICATA 573
+ECHIURA 138
+UNKNOWN 231
+POLYCHAETA 288
+Done. Found 17044 examples in test set
+ 
 
 ## Developer Notes
 BUG in 
