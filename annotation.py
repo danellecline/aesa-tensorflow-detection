@@ -68,8 +68,8 @@ class Annotation():
         print('Parsing ' + group_file)
         df = pd.read_csv(group_file, sep=',')
         for index, row in df.iterrows():
-          category = row.Category
-          group = row.Group
+          category = row.Category.strip().replace(" ", "")
+          group = row.Group.strip().replace(" ", "")
           self.group_map[category.upper()] = group.upper()
 
       ntest = 0
@@ -85,10 +85,10 @@ class Annotation():
 
               #print('Processing row {0} filename {1} annotation {2}'.format(index, filename, row['Category']))
 
-              category = row["Category"].upper()
+              category = row["Category"].strip().replace(" ", "").upper()
               group = None
               try:
-                group = row["group"].upper()
+                group = row["group"].strip().replace(" ", "").upper()
               except:
                 pass
 
@@ -98,7 +98,7 @@ class Annotation():
                 print('Correction index {0} category {1} to {2}'.format(idx[0], category, new_category))
                 if new_category == 'Remove':
                   continue
-                category = new_category.upper()
+                category = new_category.strip().replace(" ", "").upper()
 
               x = int(row["CentreX"])
               y = int(row["CentreY"])
@@ -108,7 +108,7 @@ class Annotation():
               pad = (length / 100.0) * conf.PAD_PERCENTAGE
               a = self.aesa_annotation(category=category, group=group, heirarchical_group=None, x=x, y=y, pad=pad, filename=filename, length=length)
 
-              if group_file and category not in self.group_map.keys():
+              if group_file and category not in self.group_map:
                 continue
 
               a = self.correct(a)
@@ -391,15 +391,15 @@ class Annotation():
     self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
 
     crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
-    '''if os.path.exists(crop_coord):
+    if os.path.exists(crop_coord):
         print('Loading {0}'.format(crop_coord))
         with open(crop_coord, 'r') as in_file:
           reader = csv.reader(in_file)
           row = next(reader)
           crop_left=int(row[0])
           crop_right=int(row[1])
-    else:'''
-    crop_left, crop_right = self.rotate_crop(annotation, bin_x, bin_y, brx, bry,
+    else:
+      crop_left, crop_right = self.rotate_crop(annotation, bin_x, bin_y, brx, bry,
                                              cropped_file, metadata,  src_file, tlx, tly)
 
     with open(crop_coord, 'w') as out:
@@ -444,15 +444,14 @@ class Annotation():
     bin_y2 = int(numpy.digitize(center_y, bins_y2)) - 1
     # calculate what sub image index the annotations should fall into
     subindex = bin_y2*2 + bin_x2
-    subkey = '{0:02}_{1:02}'.format(index, subindex)
     rescaled_file = '{0}/{1}_{2:02}_{3:02}.png'.format(conf.PNG_DIR, key, index, subindex)
-    #if not os.path.exists(rescaled_file):
-    w = tile_width2
-    h = tile_height2
-    tlxx = bin_x2*w
-    tlyy = bin_y2*h
-    os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage -scale {5}x{6}\! "{7}"'.format(
-      cropped_file, w, h, tlxx, tlyy, conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT, rescaled_file))
+    if not os.path.exists(rescaled_file):
+      w = tile_width2
+      h = tile_height2
+      tlxx = bin_x2*w
+      tlyy = bin_y2*h
+      os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage -scale {5}x{6}\! "{7}"'.format(
+        cropped_file, w, h, tlxx, tlyy, conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT, rescaled_file))
 
     sub_metadata = self.image_metadata(tile_width=tile_width2, tile_height=tile_height2,
                         image_width=tile_height2, image_height=tile_width2,
