@@ -1,55 +1,15 @@
 item
 {
  id:1
-  name: 'ARTHROPODA'
-}
-item
-{
- id:2
-  name: 'ASTEROIDEA'
-}
-item
-{
- id:3
   name: 'CNIDARIA'
 }
 item
 {
- id:4
-  name: 'CRINOIDEA'
-}
-item
-{
- id:5
-  name: 'ECHIURA'
-}
-item
-{
- id:6
-  name: 'HOLOTHUROIDEA'
-}
-item
-{
- id:7
+ id:2
   name: 'OPHIUROIDEA'
 }
 item
 {
- id:8
+ id:3
   name: 'POLYCHAETA'
-}
-item
-{
- id:9
-  name: 'PORIFERA'
-}
-item
-{
- id:10
-  name: 'TUNICATA'
-}
-item
-{
- id:11
-  name: 'UNKNOWN'
 }
