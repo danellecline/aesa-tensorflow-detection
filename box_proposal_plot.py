@@ -42,6 +42,7 @@ import tensorflow as tf
 arch_markers = {'Faster RCNN': 'o', 'SSD':'D', 'R-FCN': '*'}
 fe_colors = {'Resnet 101':'Y', 'Inception V2':'B'}
 sz_colors = {'950x540':'G', '300':'R', '600':'Y'}
+sz_proposals = {'600':'k', '300':'m', '100':'c'}
 
 def aggregate(search_path, tempdir):
   all_files = glob.glob(search_path, recursive=True)
@@ -65,6 +66,8 @@ def model_plot(all_model_index, model, ax):
     m = arch_markers[model.meta_arch]
   if model.image_resolution in sz_colors.keys():
     c = sz_colors[model.image_resolution]
+  if model.proposals in sz_proposals.keys():
+    c = sz_proposals[model.proposals]
 
   ax.scatter(data.index, data.values, marker=m, color=c, s=40, label=model.meta_arch)
 
@@ -130,7 +133,7 @@ def main(_):
 
     ax1.set_ylim([0, 100])
     ax1.set_ylabel('mAP', fontsize=10)
-    ax1.set_xlabel('GPU Time (seconds)', fontsize=10)
+    ax1.set_xlabel('GPU Training Time (minutes)', fontsize=10)
     ax1.set_title('Mean Average Precision per Model', fontstyle='italic')
     markers = []
     names = []
@@ -140,10 +143,17 @@ def main(_):
       markers.append(s)
     ax1.legend(markers, names)
     inc = 30
-    ax1.text(200, 35, r'Resolution', fontsize=8)
+    ax1.text(150, 35, r'Resolution', fontsize=8)
     for size, color in sz_colors.items():
-      ax1.text(220, inc - 2, r'{0}'.format(size), fontsize=8)
-      c = mpatches.Circle( (200, inc), 2, edgecolor='black', facecolor=color)
+      ax1.text(160, inc - 2, r'{0}'.format(size), fontsize=8)
+      c = mpatches.Circle( (150, inc), 2, edgecolor='black', facecolor=color)
+      ax1.add_patch(c)
+      inc -= 10
+    inc = 30
+    ax1.text(240, 35, r'Box Proposals', fontsize=8)
+    for size, color in sz_proposals.items():
+      ax1.text(250, inc - 2, r'{0}'.format(size), fontsize=8)
+      c = mpatches.Circle( (240, inc), 2, edgecolor='black', facecolor=color)
       ax1.add_patch(c)
       inc -= 10
 
