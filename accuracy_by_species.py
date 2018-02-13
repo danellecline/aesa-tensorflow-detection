@@ -39,20 +39,12 @@ plt.rcParams['figure.titlesize'] = 12
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models/research'))
 
 import tensorflow as tf
-
+smooth_weights = {'POLYCHAETA':0.8, 'CNIDARIA':0.2, 'OPHIUROIDEA': 0.8}  
 category = {'POLYCHAETA':'Polychaeta', 'CNIDARIA':'Cnidaria', 'OPHIUROIDEA': 'Ophiuroidea'}  
 arch_markers = {'Faster RCNN': 'o', 'SSD':'D', 'R-FCN': '*'}
 fe_colors = {'Resnet 101':'Y', 'Inception V2':'B'}
 sz_colors = {'500x500':'G', '300':'R', '600':'Y'}
-sz_proposals = {'600':'R', '300': 'G','100':'k', '50':'m'}
-
-def aggregate(search_path, tempdir):
-  all_files = glob.glob(search_path, recursive=True)
-  for f in all_files:
-    src = f
-    dir, file = os.path.split(src)
-    dst = '{0}/{1}'.format(tempdir, file)
-    shutil.copy(src, dst)
+sz_proposals = {600:'R', 300: 'G',100:'k', 50:'m'}
 
 def wallToGPUTime(x, zero_time):
   return round(int((x - zero_time)/60),0)
@@ -75,25 +67,19 @@ def smooth(data, smooth_weight):
     smooth_data.append(smoothed)
   return smooth_data
 
-def model_plot(all_model_index, model, ax):
+def model_plot(all_model_index, model, ax, smooth_weight):
   data = all_model_index.loc[model.name]
   m = '.'
   c = 'grey'
   if model.meta_arch in arch_markers.keys():
     m = arch_markers[model.meta_arch]
-  #if model.image_resolution in sz_colors.keys():
-  #  c = sz_colors[model.image_resolution]
   if model.proposals in sz_proposals.keys():
     c = sz_proposals[model.proposals]
 
-  ax.scatter(data.index, data.values, marker=m, color=c, s=5, label=model.meta_arch)
+  ax.scatter(data.index, data.values, marker=m, color=c, s=20, label=model.meta_arch)
   x = data.index
   y = data.values
-  '''The smoothing algorithm is a simple moving average, which, given a
-     point p and a window w, replaces p with a simple average of the
-     points in the [p - floor(w/2), p + floor(w/2)] range.''' 
-  smoothing_weight=0.8
-  y_smooth = smooth(data.values, smoothing_weight)
+  y_smooth = smooth(data.values, smooth_weight)
   ax.plot(x, y_smooth, color=c, label=model.meta_arch)
  
 def extract_data(d, category, name):
@@ -133,7 +119,7 @@ def main(_):
     for d in all_dirs:
       dir_name = d.split('eval')[0]
       model_name = dir_name.split('/')[-2]
-      a = meta.ModelMetadata(model_name, '500x500')
+      a = meta.ModelMetadata(model_name)
       try:
         df_new = extract_data(d, cat_key, a.name)
         df_eval = df_eval.append(df_new)
@@ -155,9 +141,10 @@ def main(_):
         ax1 = plt.subplot(aspect='equal')
         ax1.set_xlim(0, 300)
         ax1.set_ylim(0, 100)
+        smooth_weight = smooth_weights[cat_key]
 
         for model in all_models:
-          model_plot(all_model_index, model, ax1)
+          model_plot(all_model_index, model, ax1, smooth_weight)
 
         ax1.set_ylim([0, 100])
         ax1.set_ylabel('mAP', fontsize=10)
@@ -172,14 +159,14 @@ def main(_):
         ax1.legend(markers, names, loc=1)
         inc = 40
         ax1.text(240, 45, r'Box Proposals', fontsize=8)
-        for size, color in sz_proposals.items():
+        for size, color in sorted(sz_proposals.items()):
           ax1.text(250, inc - 2, r'{0}'.format(size), fontsize=8)
           c = mpatches.Circle( (240, inc), 2, edgecolor='black', facecolor=color)
           ax1.add_patch(c)
           inc -= 10
 
         out_file='mAP{0}.png'.format(cat_key)
-        plt.savefig(out_file, format='png')
+        plt.savefig(out_file, format='png',  bbox_inches='tight')
         print('Done creating {0}'.format(out_file))
         plt.show()
 
