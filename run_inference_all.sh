@@ -6,14 +6,13 @@ models=(
 ["0"]="faster_rcnn_resnet101_coco_600_smallanchor" \
 ["1"]="faster_rcnn_resnet101_coco_300_smallanchor" \
 ["2"]="faster_rcnn_resnet101_coco_100_smallanchor" \
-["3"]="faster_rcnn_resnet101_coco_50_smallanchor"
+["3"]="faster_rcnn_resnet101_coco_50_smallanchor" \
+["4"]="rfcn_resnet101_coco_300_smallanchor" \
+["5"]="rfcn_resnet101_coco_100_smallanchor" \
+["6"]="rfcn_resnet101_coco_50_smallanchor" \
+["7"]="ssd_inception_v2_coco_500" \
 )
-#["5"]="rfcn_resnet101_coco_300_smallanchor" \
-#["4"]="rfcn_resnet101_coco_100_smallanchor" \
-#["5"]="rfcn_resnet101_coco_50_smallanchor" \
-#["6"]="ssd_inception_v2_coco_500" \
-#)
-NUM_MODELS=4
+NUM_MODELS=8
 
 # Run inference across GPU last, using four models at a time
 for i in $(seq 0 4 $(($NUM_MODELS-1))); do
