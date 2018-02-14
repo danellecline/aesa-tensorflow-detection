@@ -9,8 +9,8 @@ class ModelMetadata():
      """
   meta_arch = 'Unknown'
   feature_arch = 'Unknown'
-  proposal = '0'
-  image_resolution = '500x500'
+  proposals = 0
+  image_resolution = 'Unknown'
   name = 'None'
 
   def __init__(self, model_name):
@@ -19,7 +19,7 @@ class ModelMetadata():
     :param path: directories of model
     """
     self.name = model_name
-    self.proposals = 0
+    self.image_resolution = '500x500'
 
     if 'resnet101' in model_name:
       self.feature_arch = 'Resnet 101'
@@ -38,8 +38,7 @@ class ModelMetadata():
         if self.meta_arch == 'SSD':
           self.image_resolution = j
         else:
-          self.proposals = j
+          self.proposals = int(j)
 
-      # TODO add regex for resolution here
 
     print('Model architecture {0} feature extractor {1} proposals {2} image resolution {3}'.format(self.meta_arch, self.feature_arch, self.proposals, self.image_resolution))
