@@ -28,13 +28,6 @@ from tensorboard.backend.event_processing.event_accumulator import EventAccumula
 plt.style.use('ggplot')
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 30
-plt.rcParams['axes.labelsize'] = 20
-plt.rcParams['axes.labelweight'] = 'bold'
-plt.rcParams['axes.titlesize'] = 20
-#plt.rcParams['xtick.labelsize'] = 8
-#plt.rcParams['ytick.labelsize'] = 8
-#plt.rcParams['legend.fontsize'] = 20
-#plt.rcParams['figure.titlesize'] = 20
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models/research'))
 
 import tensorflow as tf
@@ -120,6 +113,8 @@ def main(_):
   # drop the step column as it's no longer needed
   df_eval = df_eval.drop(['step'], axis=1)
   df_final = df_eval[df_eval['GPU Time'] < 200 ]
+  df_mean = df_eval[(df_eval['GPU Time'] < 200) & (df_eval['GPU Time'] > 50)]
+  print(df_mean.groupby(['model']).mean().sort_values('Overall mAP'))
 
   all_model_index = df_final.set_index(['model','GPU Time']).sort_index()
 
@@ -135,9 +130,9 @@ def main(_):
       model_plot(all_model_index, model, ax1)
 
     ax1.set_ylim([0, 100])
-    ax1.set_ylabel('mAP', fontsize=10)
-    ax1.set_xlabel('GPU Training Time (minutes)', fontsize=10)
-    ax1.set_title('Overall Mean Average Precision', fontstyle='italic')
+    ax1.set_ylabel('mAP')
+    ax1.set_xlabel('GPU Time (minutes)')
+    ax1.set_title('Mean Average Precision', fontstyle='italic')
     markers = []
     names = []
     for name, marker in arch_markers.items():

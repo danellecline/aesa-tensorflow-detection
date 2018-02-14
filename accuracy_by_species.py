@@ -28,23 +28,16 @@ from tensorboard.backend.event_processing.event_accumulator import EventAccumula
 
 plt.style.use('ggplot')
 plt.rcParams['font.family'] = 'serif'
-plt.rcParams['font.size'] = 10
-plt.rcParams['axes.labelsize'] = 10
-plt.rcParams['axes.labelweight'] = 'bold'
-plt.rcParams['axes.titlesize'] = 10
-plt.rcParams['xtick.labelsize'] = 8
-plt.rcParams['ytick.labelsize'] = 8
-plt.rcParams['legend.fontsize'] = 10
-plt.rcParams['figure.titlesize'] = 12
+plt.rcParams['font.size'] = 30
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models/research'))
 
 import tensorflow as tf
 smooth_weights = {'POLYCHAETA':0.8, 'CNIDARIA':0.2, 'OPHIUROIDEA': 0.8}  
 category = {'POLYCHAETA':'Polychaeta', 'CNIDARIA':'Cnidaria', 'OPHIUROIDEA': 'Ophiuroidea'}  
 arch_markers = {'Faster RCNN': 'o', 'SSD':'D', 'R-FCN': '*'}
-fe_colors = {'Resnet 101':'Y', 'Inception V2':'B'}
 sz_colors = {'500x500':'G', '300':'R', '600':'Y'}
-sz_proposals = {600:'R', 300: 'G',100:'k', 50:'m'}
+sz_proposals = {600:'c', 300: 'm',100:'k', 50:'y'}
+
 
 def wallToGPUTime(x, zero_time):
   return round(int((x - zero_time)/60),0)
