@@ -99,7 +99,7 @@ python create_tfrecord.py \
  
 ```    
 
-## Download pretrained models for transfer learning
+## Download pretrained models
 ``` bash
 mkdir -p models/
 cd models
@@ -123,7 +123,7 @@ python tensorflow_models/research/object_detection/train.py \
     --eval_dir=`pwd`/models/faster_rcnn_resnet101_coco960540resolution_smallanchor/eval
 ```
       
-### Test the model 
+### Test the model (run this *during* training the model)
 ``` bash
 python tensorflow_models/research/object_detection/eval.py \
     --logtostderr \
@@ -132,6 +132,16 @@ python tensorflow_models/research/object_detection/eval.py \
     --eval_dir=PATH_TO_EVAL_DIR
 ```
  
+## View results on the model with tensorboard in a docker container
+```bash
+# Build container with
+docker build -t tensorboard -f Dockerfile.tensorboard .
+
+# Run with
+docker run -p 6006:6006 -v `pwd`:/models tensorboard
+
+# and open web browser to http://localhost:6006 to view model output
+```
 
 ## Annotation totals
 
