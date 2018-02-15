@@ -54,9 +54,9 @@ popd
  
 ### Add libraries to PYTHONPATH
 
-When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
-This can be done by running the following from tensorflow_models :
-
+The tensorflow_models directories should be appended to PYTHONPATH. 
+This can be done by running the following from tensorflow_models. This is included in
+the scripts: export_graph.sh, run.sh, and run_inference.sh, but for reference:  
 ``` bash
 pushd tensorflow_models/research/
 export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
@@ -64,14 +64,39 @@ popd
 ```
 
 ### Generate the TFRecord files 
+Images and bounding box annotations for thos images must be stored in a
+TensorFlow record. For this data, it is first converted from annotations in csv
+files to xml files, then ingested with the create_tfrecord.py script.
+
+1.  Export to xml and crop images.  This step takes several days for the entire data set
+Edit conf.py, replacing ANNOTATION_FILE, TILE_PNG_DIR, and TILE_DIR
+with the locations of the annotation csv file, and directories for the raw and 
+converted tiles.
+
+switching to whatever dive you have, then run
 ``` bash
-wget URL_FOR_TRAINING_DATA
-python create_tfrecord.py  
-    --data_dir PATH_TO_TRAINING_DATA --collection M53545556_500x500 \
-    --output_path M53545556_500x500_train.record --label_map_path  aesa_benthic_label_map.pbtxt --set train 
-python create_tfrecord.py  
-    --data_dir PATH_TO_TRAINING_DATA --collection M53545556_500x500 \
-    --output_path M53545556_500x500_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
+python convert_annotations.py
+```
+2.  Split the annotation in a 50/50 split
+``` bash
+python split_annotations.py
+```
+3. Convert to a TF record
+``` bash 
+python create_tfrecord.py \
+--collection M56_500x500_by_group \
+--data_dir $PWD/data/ \
+--output_path $PWD/data/M56_500x500_train_by_group.record \
+--label_map_path $PWD/data/aesa_group_map.pbtxt \
+--set train
+
+python create_tfrecord.py \
+--collection M56_500x500_by_group  \
+--data_dir $PWD/data/ \
+--output_path $PWD/data/M56_500x500_test_by_group.record \
+--label_map_path $PWD/data/aesa_group_map.pbtxt \
+--set test
+ 
 ```    
 
 ## Download pretrained models for transfer learning
