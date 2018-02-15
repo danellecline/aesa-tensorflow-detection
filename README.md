@@ -112,32 +112,32 @@ python tensorflow_models/research/object_detection/eval.py \
 
 TRAIN
 ----
-POLYCHAETA 313
-CRINOIDEA 328
-ASTEROIDEA 46
-CNIDARIA 9504
-ARTHROPODA 76
-OPHIUROIDEA 4748
-TUNICATA 557
-UNKNOWN 235
-PORIFERA 451
-HOLOTHUROIDEA 598
-ECHIURA 128
+* POLYCHAETA 313
+* CRINOIDEA 328
+* ASTEROIDEA 46
+* CNIDARIA 9504
+* ARTHROPODA 76
+* OPHIUROIDEA 4748
+* TUNICATA 557
+* UNKNOWN 235
+* PORIFERA 451
+* HOLOTHUROIDEA 598
+* ECHIURA 128
 Done. Found 16984 examples in train set
 
 TEST
 ----
-CNIDARIA 9539
-ARTHROPODA 64
-PORIFERA 424
-CRINOIDEA 347
-HOLOTHUROIDEA 623
-ASTEROIDEA 51
-OPHIUROIDEA 4766
-TUNICATA 573
-ECHIURA 138
-UNKNOWN 231
-POLYCHAETA 288
+* CNIDARIA 9539
+* ARTHROPODA 64
+* PORIFERA 424
+* CRINOIDEA 347
+* HOLOTHUROIDEA 623
+* ASTEROIDEA 51
+* OPHIUROIDEA 4766
+* TUNICATA 573
+* ECHIURA 138
+* UNKNOWN 231
+* POLYCHAETA 288
 Done. Found 17044 examples in test set
  
 
@@ -151,6 +151,7 @@ should be
 for python3.x
 
 # To evaluate model time, insert
+``` bash
 import csv
 import numpy as np
 ofile  = open('{0}_gputime.csv'.format(FLAGS.output_tfrecord_path), 'wt')
@@ -172,6 +173,7 @@ m = np.mean(times)
  print('Elapsed time {0}'.format(t))
 starting at lines 76 of
 tensorflow_models/research/object_detection/inference/infer_detections.py
+```
 
 # Developer notes
 
