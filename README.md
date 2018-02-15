@@ -1,12 +1,17 @@
 # aesa-tensorflow-detection 
  
-Code for testing Tensorflow detection API on on AESA data
+Code for testing Tensorflow detection API on AESA data
+
+Mosaic images are broken into 500x00 tiles for training/testing.
+
+[![ Image link ](/img/summary.png)]
 
 ## Prerequisites
  
 - Python version  3.5
 - [Protobuf](https://developers.google.com/protocol-buffers/
 - Packages: python-tk e.g. apt-get install python3.5-tk,  
+- Access to the processed mosaic data and annotations that accompany those. Send an email request if interested
 
 ## Running
 
@@ -46,7 +51,7 @@ unzip protoc-3.3.0-linux-x86_64.zip
 protoc object_detection/protos/*.proto --python_out=.
 popd 
 ```
-
+ 
 ### Add libraries to PYTHONPATH
 
 When running locally, the tensorflow_models directories should be appended to PYTHONPATH. 
@@ -62,23 +67,23 @@ popd
 ``` bash
 wget URL_FOR_TRAINING_DATA
 python create_tfrecord.py  
-    --data_dir PATH_TO_TRAINING_DATA --collection aesa_BENTHIC_2017 \
-    --output_path aesa_BENTHIC_2017_train.record --label_map_path  aesa_benthic_label_map.pbtxt --set train 
+    --data_dir PATH_TO_TRAINING_DATA --collection M53545556_500x500 \
+    --output_path M53545556_500x500_train.record --label_map_path  aesa_benthic_label_map.pbtxt --set train 
 python create_tfrecord.py  
-    --data_dir PATH_TO_TRAINING_DATA --collection aesa_BENTHIC_2017 \
-    --output_path aesa_BENTHIC_2017_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
+    --data_dir PATH_TO_TRAINING_DATA --collection M53545556_500x500 \
+    --output_path M53545556_500x500_test.record --label_map_path  aesa_benthic_label_map.pbtxt --set test 
 ```    
 
 ## Download pretrained models for transfer learning
 ``` bash
 mkdir -p models/
 cd models
-curl http://download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_2017_11_08.tar.gz > faster_rcnn_resnet101_coco_11_08_2017.tar.gz
+curl -o faster_rcnn_resnet101_coco_11_08_2017.tar.gz http://download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_2017_11_08.tar.gz 
+curl -o rfcn_resnet101_coco_2018_01_28.tar.gz http://download.tensorflow.org/models/object_detection/rfcn_resnet101_coco_2018_01_28.tar.gz
+curl -o ssd_inception_v2_coco_2017_11_17.tar.gz http://download.tensorflow.org/models/object_detection/ssd_inception_v2_coco_2017_11_17.tar.gz
+tar -xvf ssd_inception_v2_coco_2017_11_17.tar.gz
+tar -xvf rfcn_resnet101_coco_2018_01_28.tar.gz.tar.gz 
 tar -xvf faster_rcnn_resnet101_coco_11_08_2017.tar.gz 
-
-# optional if you have enough memory
-curl http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz > faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz
-tar -xvf faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08.tar.gz  
 ```
     
 ### Edit the pipeline.config file
@@ -168,7 +173,8 @@ m = np.mean(times)
 starting at lines 76 of
 tensorflow_models/research/object_detection/inference/infer_detections.py
 
-A placeholder for notes that might be useful for developers
+# Developer notes
+
 * Pre processing options [https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
 * Install your own dataset [https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md)
 * Install TensorFlow Object Detection API [dhttps://github.com/tensorflow/models/blob/master/object_detection/g3doc/installation.m](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/installation.md) 
