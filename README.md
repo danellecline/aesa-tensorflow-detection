@@ -4,7 +4,7 @@ Code for testing Tensorflow detection API on AESA data
 
 Mosaic images are broken into 500x00 tiles for training/testing.
 
-[![ Image link ](/img/summary.jpg)]
+[![ Image link ](/img/summary.png)]
 
 ## Prerequisites
  
