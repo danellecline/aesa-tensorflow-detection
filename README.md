@@ -1,12 +1,17 @@
 # aesa-tensorflow-detection 
  
-Code for testing Tensorflow detection API on on AESA data
+Code for testing Tensorflow detection API on AESA data
+
+Mosaic images are broken into 500x00 tiles for training/testing.
+
+[![ Image link ](/img/summary.jpg)]
 
 ## Prerequisites
  
 - Python version  3.5
 - [Protobuf](https://developers.google.com/protocol-buffers/
 - Packages: python-tk e.g. apt-get install python3.5-tk,  
+- Access to the processed mosaic data and annotations that accompany those. Send an email request if interested
 
 ## Running
 
