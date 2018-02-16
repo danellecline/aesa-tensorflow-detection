@@ -142,7 +142,7 @@ def main(_):
         ax1.set_ylim([0, 100])
         ax1.set_ylabel('mAP', fontsize=10)
         ax1.set_xlabel('GPU Time (minutes)', fontsize=10)
-        ax1.set_title('{0} Mean Average Precision'.format(cat_value), fontstyle='italic')
+        ax1.set_title('{0} Mean Average Precision'.format(cat_value))
         markers = []
         names = []
         for name, marker in arch_markers.items():
