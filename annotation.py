@@ -191,18 +191,16 @@ class Annotation():
               key = tail.split('.')[0]
 
               # if haven't converted tiles to smaller grid, convert
+              print('Generating tiles for {0}'.format(key))
               if key not in self.frame_dict.keys() and tail not in self.missing_frames :
                   if not os.path.exists(str(a.filename)):
                     self.missing_frames.append(tail)
                     continue
                   image_height, image_width = image_utils.get_dims(a.filename)
-                  if image_height < 300 or image_width < 300:
-                    raise Exception('image {0} height {1} or width {2} too small'.format(a.filename, image_width, image_height))
-
                   image_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, 0)
                   # http://www.imagemagick.org/Usage/crop/#crop_equal
                   if not os.path.exists(image_file):
-                    raise('Skipping converting {0} to tiles due to time constrain'.format(a.filename))
+                    #raise('Skipping converting {0} to tiles due to time constraint'.format(a.filename))
                     print('Converting {0} into tiles'.format(a.filename))
                     if image_height > image_width:
                         os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}@ +repage +adjoin -quality 100%% "{3}/{4}_%02d.png"'
@@ -260,7 +258,6 @@ class Annotation():
 
     # get  blobs
     dilate = cv2.dilate(binary_img, kernel, iterations=3)
-    cv2.imwrite('dilate.jpg', dilate)
     img, contours, hierarchy = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # keep valid contours
@@ -388,7 +385,7 @@ class Annotation():
     cropped_file = '{0}/{1}_{2:02}_cropped.png'.format(conf.TILE_PNG_DIR, key, index)
 
     brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y)
-    self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
+    #self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
 
     crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
     if os.path.exists(crop_coord):
@@ -433,7 +430,7 @@ class Annotation():
     brx = min(brx, tile_width)
     center_x -= crop_left
 
-    self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
+    #self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
     annotation_new = annotation._replace(x=center_x, y=center_y)
 
     tile_width2 = int(tile_width/2)
@@ -499,14 +496,15 @@ class Annotation():
   def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, src_file,
                         tlx, tly):
 
-    temp_file = tempfile.mktemp('temp.png', dir='/tmp')
+    temp_dir = tempfile.mkdtemp()
+    temp_file = os.path.join(temp_dir, 'temp.png')
 
     if metadata.rotate:
       cmd = '/usr/local/bin/convert {0} -rotate 90 "{1}"'.format(src_file, temp_file)
       os.system(cmd)
       print('Running {0}'.format(cmd))
       brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y, True)
-      self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
+      #self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
     else:
       shutil.copyfile(src_file, temp_file)
     # crop and store left/right offsets; TODO: add top/bottom crop
@@ -519,6 +517,7 @@ class Annotation():
     else:
       crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_width, metadata.tile_height, cropped_file)
 
+    os.removedirs(temp_dir)
     return crop_left, crop_right
 
   def scale(self, cropped_file, rescaled_file):
