@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+__author__    = 'Danelle Cline'
+__copyright__ = '2018'
+__license__   = 'GPL v3'
+__contact__   = 'dcline at mbari.org'
+__doc__ = '''
+
+Splits collections into training/test sets
+@var __date__: Date of last svn commit
+@undocumented: __doc__ parser
+@status: production
+@license: GPL
+'''
 import utils
 import os
 import conf

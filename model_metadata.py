@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+__author__    = 'Danelle Cline'
+__copyright__ = '2018'
+__license__   = 'GPL v3'
+__contact__   = 'dcline at mbari.org'
+__doc__ = '''
+
+Utility class for holding model metadata
+
+@var __date__: Date of last svn commit
+@undocumented: __doc__ parser
+@status: production
+@license: GPL
+'''
+
 from collections import namedtuple
 
 model_metadata = namedtuple("model_metadata", ["meta_arch", "feature_extractor", "proposals", "dir", "name", "resolution"])
