@@ -396,8 +396,7 @@ class Annotation():
           crop_left=int(row[0])
           crop_right=int(row[1])
     else:
-      crop_left, crop_right = self.rotate_crop(annotation, bin_x, bin_y, brx, bry,
-                                             cropped_file, metadata,  src_file, tlx, tly)
+      crop_left, crop_right = self.rotate_crop(annotation, bin_x, bin_y, brx, bry,  cropped_file, metadata,  src_file)
 
     with open(crop_coord, 'w') as out:
       csv_out = csv.writer(out)
@@ -493,31 +492,34 @@ class Annotation():
       self.show_annotation('final', annotation.group, rescaled_file, brx2, bry2, tlx2, tly2, True, annotated_file)
     return obj, rescaled_file
 
-  def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, src_file,
-                        tlx, tly):
+  def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, src_file):
 
     temp_dir = tempfile.mkdtemp()
     temp_file = os.path.join(temp_dir, 'temp.png')
-
-    if metadata.rotate:
-      cmd = '/usr/local/bin/convert {0} -rotate 90 "{1}"'.format(src_file, temp_file)
-      os.system(cmd)
-      print('Running {0}'.format(cmd))
-      brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y, True)
-      #self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
-    else:
-      shutil.copyfile(src_file, temp_file)
-    # crop and store left/right offsets; TODO: add top/bottom crop
-    img = cv2.imread(temp_file)
-    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, binary_img = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    invert_img = cv2.bitwise_not(binary_img);
-    if metadata.rotate:
-      crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_height, metadata.tile_width, cropped_file)
-    else:
-      crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_width, metadata.tile_height, cropped_file)
-
-    os.removedirs(temp_dir)
+    crop_left = 0
+    crop_right = 0
+    try:
+        if metadata.rotate:
+          cmd = '/usr/local/bin/convert {0} -rotate 90 "{1}"'.format(src_file, temp_file)
+          os.system(cmd)
+          print('Running {0}'.format(cmd))
+          #brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y, True)
+          #self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
+        else:
+          shutil.copyfile(src_file, temp_file)
+        # crop and store left/right offsets; TODO: add top/bottom crop
+        img = cv2.imread(temp_file)
+        gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        ret, binary_img = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        invert_img = cv2.bitwise_not(binary_img);
+        if metadata.rotate:
+          crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_height, metadata.tile_width, cropped_file)
+        else:
+          crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_width, metadata.tile_height, cropped_file)
+    except Exception as ex:
+      print('Error rotating and cropping {0}'.format(ex))
+    finally:
+        os.removedirs(temp_dir)
     return crop_left, crop_right
 
   def scale(self, cropped_file, rescaled_file):
