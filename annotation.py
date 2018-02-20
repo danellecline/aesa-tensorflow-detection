@@ -121,7 +121,7 @@ class Annotation():
               #if a.category in conf.OPTIMIZED_CATEGORIES:
               #  self.annotations.append(a)
               #ntest += 1
-              #if ntest > 1000:
+              #if ntest > 5000:
               #  break;
               #self.annotations.append(a)
               #  break;
@@ -191,7 +191,7 @@ class Annotation():
               key = tail.split('.')[0]
 
               # if haven't converted tiles to smaller grid, convert
-              print('Generating tiles for {0}'.format(key))
+              #print('Generating tiles for {0}'.format(key))
               if key not in self.frame_dict.keys() and tail not in self.missing_frames :
                   if not os.path.exists(str(a.filename)):
                     self.missing_frames.append(tail)
@@ -245,18 +245,64 @@ class Annotation():
 
       return annotation
 
-  def crop(self, binary_img, tile_file, tile_width, tile_height, dst_file):
+  def find_blobs(self, xy_c, xy_l, wh_l, max_dim):
+    from scipy.cluster.vq import kmeans, vq
+    crop_left_top = 0
+    crop_right_bottom = 0
+    try:
+      centroids, _ = kmeans(np.array(xy_c), 2, iter=20)
+      idx, _ = vq(np.array(xy_c), centroids)
+      centroids_x = centroids[:,0]
+
+      if len(centroids_x) == 2 :
+        group = 0
+        distance = np.diff(sorted(centroids_x))
+        if int(distance) > max_dim:
+          # for each group, find extents for the boxes
+          for c in centroids:
+            idx_group = [i for i, j in enumerate(idx) if j == group]
+            xy_ll = [xy_l[i] for i in idx_group]
+            wh_ll = [wh_l[i] for i in idx_group]
+            # find the extents
+            xy_1 = min(xy_ll)
+            width = max(wh_ll)
+
+            if xy_1 == 0:
+              crop_left_top = width
+            else:
+              crop_right_bottom = width
+            group += 1
+
+        if len(centroids_x) == 1:
+          xy_1 = xy_ll[0]
+          width = wh_ll[0]
+          if xy_1 == 0:
+            crop_left_top = width
+          else:
+            crop_right_bottom = width
+
+        return crop_left_top, crop_right_bottom
+    except Exception as ex:
+      print('Error finding black blobs {0}'.format(ex))
+    finally:
+      return crop_left_top, crop_right_bottom
+
+  def crop_black(self, tile_file, tile_width, tile_height, dst_file):
     '''
      Crop the tile image to remove black mosaic artifacts
-    :param binary_img: binary image to extract tile edge artifacts from
     :param tile_file: tile to crop
+    :param tile_width: width of tile to crop
+    :param tile_height: height of tile to crop
     :param dst_file: destimation file for crop
     :return: amount cropped from left and right side
     '''
-    from scipy.cluster.vq import kmeans, vq
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    img = cv2.imread(tile_file)
+    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh_img = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    binary_img = cv2.bitwise_not(thresh_img);
 
     # get  blobs
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
     dilate = cv2.dilate(binary_img, kernel, iterations=3)
     img, contours, hierarchy = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -264,75 +310,52 @@ class Annotation():
     x_l = []
     y_l = []
     w_l = []
+    h_l = []
     x_c = []
+    y_c = []
     for contour in contours:
       # get rectangle bounding contour
       [x, y, w, h] = cv2.boundingRect(contour)
       area = w * h
       #print("area {0} x {1} y {2} w {3} h {4}".format(area, x, y, w, h))
-      # get valid areas
-      if area > 5000 and (x == 0 or w + h > conf.TARGET_TILE_WIDTH/2):
-        w_l.append(w)
-        x_l.append(x)
-        y_l.append(y)
-        pt = [float(x), float(x)]
-        x_c.append(pt)
+      # get valid areas that are large enough blobs along either top/bottom/right/left
+      if area > 5000:
+        if (x == 0 or w + h > tile_width/2):
+          w_l.append(w)
+          x_l.append(x)
+          ptx = [float(x), float(x)]
+          x_c.append(ptx)
 
+        if (y == 0 or w + h > tile_height/2):
+          h_l.append(h)
+          y_l.append(y)
+          pty = [float(y), float(y)]
+          y_c.append(pty)
+
+    crop_top = 0
+    crop_bottom = 0
     crop_left = 0
     crop_right = 0
-    tlx = 0
 
     # should be two groups: one on left and one on right
-    data = np.array(x_c)
     try:
-      centroids, _ = kmeans(np.array(x_c), 2, iter=20)
-      idx, _ = vq(data, centroids)
-      centroids_x = centroids[:,0]
-
-      if len(centroids_x) == 2 :
-        group = 0
-        distance = np.diff(sorted(centroids_x))
-        if int(distance) > conf.TARGET_TILE_WIDTH/2:
-          # for each group, find extents for the boxes
-          for c in centroids:
-            idx_group = [i for i, j in enumerate(idx) if j == group]
-            x_ll = [x_l[i] for i in idx_group]
-            w_ll = [w_l[i] for i in idx_group]
-            # find the extents in x
-            x_1 = min(x_ll)
-            width = max(w_ll)
-
-            if x_1 == 0:
-              crop_left = width
-              tlx = crop_left
-            else:
-              crop_right = width
-            group += 1
-
-        if len(centroids_x) == 1:
-          x_1 = x_ll[0]
-          width = w_ll[0]
-          if x_1 == 0:
-            crop_left = width
-            tlx = crop_left
-          else:
-            crop_right = width
-
-        tly = 0
-        w = tile_width - crop_left - crop_right
-        h = tile_height
-        cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage "{5}"'.format(tile_file, w, h, tlx, tly, dst_file);
-        print('Running {0}'.format(cmd))
-        os.system(cmd)
-        return crop_left, crop_right
+      crop_left, crop_right = self.find_blobs(x_c, x_l, w_l, tile_width/2)
+      crop_top, crop_bottom = self.find_blobs(y_c, y_l, h_l, tile_height/2)
+      tlx = crop_left
+      tly = crop_top
+      w = tile_width - crop_left - crop_right
+      h = tile_height - crop_top - crop_bottom
+      cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage "{5}"'.format(tile_file, w, h, tlx, tly, dst_file);
+      print('Running {0}'.format(cmd))
+      os.system(cmd)
     except Exception as ex:
       print('Error finding black blobs {0}'.format(ex))
-      shutil.copyfile(tile_file, dst_file)
-      return 0, 0
+    finally:
+      return crop_left, crop_right, crop_top, crop_bottom
 
   def show_annotation(self, title, category, image_file, brx, bry, tlx, tly, write=False, filename=None):
     '''
-
+     Simple utility to show the annotation box overlayed on the image
     :param category:
     :param image_file:
     :param brx:
@@ -348,7 +371,7 @@ class Annotation():
       cv2.putText(img, category, (tlx, tly), font, 2, (255, 255, 255), 2)
       cv2.namedWindow(title, cv2.WINDOW_NORMAL)
       width, height = image_utils.get_dims(image_file)
-      cv2.resizeWindow(title, int(width/4), int(height/4))
+      cv2.resizeWindow(title, max(500,int(width/4)), max(500, int(height/4)))
       if conf.SHOW_ANNOTATION:
         cv2.imshow(title, img)
         cv2.waitKey(1000)
@@ -383,9 +406,11 @@ class Annotation():
 
     src_file = '{0}/{1}_{2:02}.png'.format(conf.TILE_PNG_DIR, key, index)
     cropped_file = '{0}/{1}_{2:02}_cropped.png'.format(conf.TILE_PNG_DIR, key, index)
-
+    tile_height = metadata.tile_height
+    tile_width = metadata.tile_width
     brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y)
-    #self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
+    if metadata.rotate:
+      self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
 
     crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
     if os.path.exists(crop_coord):
@@ -393,28 +418,23 @@ class Annotation():
         with open(crop_coord, 'r') as in_file:
           reader = csv.reader(in_file)
           row = next(reader)
-          crop_left=int(row[0])
-          crop_right=int(row[1])
+          if len(row) == 4:
+            crop_left=int(row[0])
+            crop_right=int(row[1])
+            crop_top=int(row[2])
+            crop_bottom=int(row[3])
+          else:
+            crop_left, crop_right, crop_top, crop_bottom = self.crop_black(src_file, tile_width, tile_height, cropped_file)
     else:
-      crop_left, crop_right = self.rotate_crop(annotation, bin_x, bin_y, brx, bry,  cropped_file, metadata,  src_file)
+      crop_left, crop_right, crop_top, crop_bottom = self.crop_black(src_file, tile_width, tile_height, cropped_file)
 
     with open(crop_coord, 'w') as out:
       csv_out = csv.writer(out)
-      csv_out.writerow([crop_left, crop_right])
-
-    if metadata.rotate:
-      tile_width = metadata.tile_height
-      tile_height = metadata.tile_width
-    else:
-      tile_height = metadata.tile_height
-      tile_width = metadata.tile_width
+      csv_out.writerow([crop_left, crop_right, crop_top, crop_bottom])
 
     # throw annotations out if they fall outside the crop
-    if tlx > tile_width - crop_right or tlx < crop_left:
-      raise Exception('{0} tlx {1} falls outside of cropped image bounds {2} {3}'.format(annotation.category, tlx,
-                                                                                         tile_width,
-                                                                                         tile_width - crop_right,
-                                                                                         tile_width + crop_left))
+    if tlx > tile_width - crop_right or tlx < crop_left or tly > tile_height - crop_bottom or tly < crop_top:
+      raise Exception('{0} tlx {1} tly {2} falls outside of cropped image bounds'.format(annotation.category, tlx, tly))
 
     # optimize if needed; not currently working
     '''if conf.OPTIMIZE_BOX == True and (brx - tlx) > conf.MIN_CROP and (bry - tly) > conf.MIN_CROP and \
@@ -423,13 +443,15 @@ class Annotation():
 
     # adjust annotation to cropped tile
     tile_width -= crop_left + crop_right
+    tile_height -= crop_top + crop_bottom
     tlx -= crop_left
     tlx = min(tlx, tile_width)
     brx -= crop_left
     brx = min(brx, tile_width)
     center_x -= crop_left
 
-    #self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
+    if metadata.rotate:
+      self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
     annotation_new = annotation._replace(x=center_x, y=center_y)
 
     tile_width2 = int(tile_width/2)
@@ -451,7 +473,7 @@ class Annotation():
 
     sub_metadata = self.image_metadata(tile_width=tile_width2, tile_height=tile_height2,
                         image_width=tile_height2, image_height=tile_width2,
-                        bins_x=bins_x2, bins_y=bins_y2, rotate=False)
+                        bins_x=bins_x2, bins_y=bins_y2, rotate=metadata.rotate)
 
     # Convert coordinates to the subindex file
     brx2, bry2, tlx2, tly2, center_x2, center_y2 = self.convert_coords(sub_metadata, annotation_new, bin_x2, bin_y2, False)
@@ -489,48 +511,33 @@ class Annotation():
         annotated_file = '{0}/{1}_{2:02}_{3:02}_annotated_r.png'.format(conf.PNG_DIR, key, index, subindex)
       else:
         annotated_file = '{0}/{1}_{2:02}_{3:02}_annotated.png'.format(conf.PNG_DIR, key, index, subindex)
-      self.show_annotation('final', annotation.group, rescaled_file, brx2, bry2, tlx2, tly2, True, annotated_file)
+      if metadata.rotate:
+        self.show_annotation('final', annotation.group, rescaled_file, brx2, bry2, tlx2, tly2, True, annotated_file)
     return obj, rescaled_file
 
-  def rotate_crop(self, annotation, bin_x, bin_y, brx, bry, cropped_file, metadata, src_file):
-
-    temp_dir = tempfile.mkdtemp()
-    temp_file = os.path.join(temp_dir, 'temp.png')
-    crop_left = 0
-    crop_right = 0
-    try:
-        if metadata.rotate:
-          cmd = '/usr/local/bin/convert {0} -rotate 90 "{1}"'.format(src_file, temp_file)
-          os.system(cmd)
-          print('Running {0}'.format(cmd))
-          #brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y, True)
-          #self.show_annotation('rotated', annotation.group, temp_file, brx, bry, tlx, tly)
-        else:
-          shutil.copyfile(src_file, temp_file)
-        # crop and store left/right offsets; TODO: add top/bottom crop
-        img = cv2.imread(temp_file)
-        gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        ret, binary_img = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        invert_img = cv2.bitwise_not(binary_img);
-        if metadata.rotate:
-          crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_height, metadata.tile_width, cropped_file)
-        else:
-          crop_left, crop_right = self.crop(invert_img, temp_file, metadata.tile_width, metadata.tile_height, cropped_file)
-    except Exception as ex:
-      print('Error rotating and cropping {0}'.format(ex))
-    finally:
-        os.removedirs(temp_dir)
-    return crop_left, crop_right
-
   def scale(self, cropped_file, rescaled_file):
-    # convert cropped image to the model size
+    '''
+     Scale cropped image to the model size
+    :param cropped_file:
+    :param rescaled_file:
+    :return:
+    '''
     cmd = '/usr/local/bin/convert {0} -scale {1}x{2}\! "{3}"'.format(cropped_file, conf.TARGET_TILE_WIDTH,
                                                                      conf.TARGET_TILE_HEIGHT, rescaled_file)
     print('Running {0}'.format(cmd))
     os.system(cmd)
 
   def optimize(self, annotation, brx, bry, src_crop, tlx, tly):
-
+    '''
+     Object detection to better crop object
+    :param annotation:
+    :param brx:
+    :param bry:
+    :param src_crop:
+    :param tlx:
+    :param tly:
+    :return:
+    '''
     kernel3 = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
     img = cv2.imread(src_crop)
     crop_img = img[tly:bry, tlx:brx]
