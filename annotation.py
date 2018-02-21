@@ -313,31 +313,37 @@ class Annotation():
     h_l = []
     x_c = []
     y_c = []
+    i = 0
     for contour in contours:
       # get rectangle bounding contour
       [x, y, w, h] = cv2.boundingRect(contour)
+      mask = np.zeros(gray_image.shape, np.uint8)
+      cv2.drawContours(mask,[contour], 0, 255, -1)
       area = w * h
-      #print("area {0} x {1} y {2} w {3} h {4}".format(area, x, y, w, h))
-      # get valid areas that are large enough blobs along either top/bottom/right/left
-      if area > 5000:
-        if (x == 0 or w + h > tile_width/2):
+      color = int(cv2.mean(gray_image, mask)[0])
+      print("area {0} x {1} y {2} w {3} h {4} color {5}".format(area, x, y, w, h, color))
+      # get valid areas that have large enough blobs along either top/bottom/right/left
+      if area > 5000 and color < 10:
+        if (x == 0 or x + w == tile_width):
           w_l.append(w)
           x_l.append(x)
           ptx = [float(x), float(x)]
           x_c.append(ptx)
 
-        if (y == 0 or w + h > tile_height/2):
+        if (y == 0 or y + h > tile_height):
           h_l.append(h)
           y_l.append(y)
           pty = [float(y), float(y)]
           y_c.append(pty)
+
+      i += 1
 
     crop_top = 0
     crop_bottom = 0
     crop_left = 0
     crop_right = 0
 
-    # should be two groups: one on left and one on right
+    # should be two groups: one on the left and one on the right
     try:
       crop_left, crop_right = self.find_blobs(x_c, x_l, w_l, tile_width/2)
       crop_top, crop_bottom = self.find_blobs(y_c, y_l, h_l, tile_height/2)
@@ -445,10 +451,15 @@ class Annotation():
     tile_width -= crop_left + crop_right
     tile_height -= crop_top + crop_bottom
     tlx -= crop_left
+    tly -= crop_top
     tlx = min(tlx, tile_width)
+    tly = min(tly, tile_height)
     brx -= crop_left
+    bry -= crop_top
     brx = min(brx, tile_width)
+    bry = min(bry, tile_height)
     center_x -= crop_left
+    center_y -= crop_top
 
     if metadata.rotate:
       self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
