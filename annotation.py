@@ -165,7 +165,6 @@ class Annotation():
       a = np.asarray(self.missing_frames)
       a.tofile(csv_file,sep=',',format='%s')
 
-
   def get_dict(self):
       '''
        Helper function to return annotation dictionary
@@ -298,12 +297,19 @@ class Annotation():
     '''
     img = cv2.imread(tile_file)
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, thresh_img = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    ret, thresh_img = cv2.threshold(gray_image, 50, 255, 0)
     binary_img = cv2.bitwise_not(thresh_img);
 
     # get  blobs
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
     dilate = cv2.dilate(binary_img, kernel, iterations=3)
+    lineThickness = 3
+    cv2.line(dilate, (0, 0), (tile_width, tile_height), 0, lineThickness)
+    cv2.line(dilate, (0, tile_height), (tile_width, 0), 0, lineThickness)
+    #cv2.namedWindow('dilate', cv2.WINDOW_NORMAL)
+    #cv2.imshow('dilate', dilate)
+    #cv2.resizeWindow('dilate', 1000, 1000)
+    #cv2.waitKey(1)
     img, contours, hierarchy = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # keep valid contours
@@ -314,50 +320,61 @@ class Annotation():
     x_c = []
     y_c = []
     i = 0
-    for contour in contours:
-      # get rectangle bounding contour
-      [x, y, w, h] = cv2.boundingRect(contour)
-      mask = np.zeros(gray_image.shape, np.uint8)
-      cv2.drawContours(mask,[contour], 0, 255, -1)
-      area = w * h
-      color = int(cv2.mean(gray_image, mask)[0])
-      print("area {0} x {1} y {2} w {3} h {4} color {5}".format(area, x, y, w, h, color))
-      # get valid areas that have large enough blobs along either top/bottom/right/left
-      if area > 5000 and color < 10:
-        if (x == 0 or x + w == tile_width):
-          w_l.append(w)
-          x_l.append(x)
-          ptx = [float(x), float(x)]
-          x_c.append(ptx)
-
-        if (y == 0 or y + h > tile_height):
-          h_l.append(h)
-          y_l.append(y)
-          pty = [float(y), float(y)]
-          y_c.append(pty)
-
-      i += 1
-
     crop_top = 0
     crop_bottom = 0
     crop_left = 0
     crop_right = 0
+    for contour in contours:
+      # get rectangle bounding contour
+      [x, y, w, h] = cv2.boundingRect(contour)
+      M = cv2.moments(contour)
+      cx = int(M['m10'] / M['m00'])
+      cy = int(M['m01'] / M['m00'])
+      mask = np.zeros(gray_image.shape, np.uint8)
+      cv2.drawContours(mask,[contour], 0, 255, -1)
+      area = w * h
+      color = int(cv2.mean(gray_image, mask)[0])
+      #print("area {0} x {1} y {2} w {3} h {4} color {5}".format(area, x, y, w, h, color))
+      if area > 5000 and color < 10:
+        dist = np.zeros(4)
+        dist[0] = math.hypot(cx - tile_width/2, cy - 100) #top
+        dist[1] = math.hypot(cx - tile_width - 100, cy - tile_height/2) #right
+        dist[2] = math.hypot(cx - tile_width/2, cy - tile_height - 100) #bottom
+        dist[3] = math.hypot(cx - 100, cy - tile_height/2)  # left
 
-    # should be two groups: one on the left and one on the right
+        a = np.argmin(dist)
+        if a == 0 or a == 2 and dist[a] < tile_width/3 and y ==0 or y + h == tile_height:
+          h_l.append(h)
+          y_l.append(y)
+          pty = [float(y), float(y)]
+          y_c.append(pty)
+        if a == 1 or a == 3 and dist[a] < tile_height/3 and x == 0 or x + w == tile_height:
+          w_l.append(w)
+          x_l.append(x)
+          ptx = [float(x), float(x)]
+          x_c.append(ptx)
+      i += 1
+
     try:
       crop_left, crop_right = self.find_blobs(x_c, x_l, w_l, tile_width/2)
-      crop_top, crop_bottom = self.find_blobs(y_c, y_l, h_l, tile_height/2)
-      tlx = crop_left
-      tly = crop_top
-      w = tile_width - crop_left - crop_right
-      h = tile_height - crop_top - crop_bottom
-      cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage "{5}"'.format(tile_file, w, h, tlx, tly, dst_file);
-      print('Running {0}'.format(cmd))
-      os.system(cmd)
     except Exception as ex:
       print('Error finding black blobs {0}'.format(ex))
-    finally:
-      return crop_left, crop_right, crop_top, crop_bottom
+    try:
+      crop_top, crop_bottom = self.find_blobs(y_c, y_l, h_l, tile_height/2)
+    except Exception as ex:
+      print('Error finding black blobs {0}'.format(ex))
+    crop_left = min(crop_left, tile_width/3)
+    crop_right = min(crop_right, tile_width/3)
+    crop_top = min(crop_top, tile_height/3)
+    crop_bottom = min(crop_bottom, tile_height/3)
+    tlx = crop_left
+    tly = crop_top
+    w = tile_width - crop_left - crop_right
+    h = tile_height - crop_top - crop_bottom
+    cmd = '/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage "{5}"'.format(tile_file, w, h, tlx, tly, dst_file);
+    print('Running {0}'.format(cmd))
+    os.system(cmd)
+    return crop_left, crop_right, crop_top, crop_bottom
 
   def show_annotation(self, title, category, image_file, brx, bry, tlx, tly, write=False, filename=None):
     '''
@@ -415,28 +432,23 @@ class Annotation():
     tile_height = metadata.tile_height
     tile_width = metadata.tile_width
     brx, bry, tlx, tly, center_x, center_y = self.convert_coords(metadata, annotation, bin_x, bin_y)
-    if metadata.rotate:
-      self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
+    self.show_annotation('raw', annotation.group, src_file, brx, bry, tlx, tly)
 
     crop_coord = '{0}/{1}_{2:02}_cropped.csv'.format(conf.TILE_PNG_DIR, key, index)
     if os.path.exists(crop_coord):
-        print('Loading {0}'.format(crop_coord))
-        with open(crop_coord, 'r') as in_file:
-          reader = csv.reader(in_file)
-          row = next(reader)
-          if len(row) == 4:
-            crop_left=int(row[0])
-            crop_right=int(row[1])
-            crop_top=int(row[2])
-            crop_bottom=int(row[3])
-          else:
-            crop_left, crop_right, crop_top, crop_bottom = self.crop_black(src_file, tile_width, tile_height, cropped_file)
+      print('Loading {0}'.format(crop_coord))
+      with open(crop_coord, 'r') as in_file:
+        reader = csv.reader(in_file)
+        row = next(reader)
+        crop_left = int(row[0])
+        crop_right = int(row[1])
+        crop_top = int(row[2])
+        crop_bottom = int(row[3])
     else:
-      crop_left, crop_right, crop_top, crop_bottom = self.crop_black(src_file, tile_width, tile_height, cropped_file)
-
-    with open(crop_coord, 'w') as out:
-      csv_out = csv.writer(out)
-      csv_out.writerow([crop_left, crop_right, crop_top, crop_bottom])
+        crop_left, crop_right, crop_top, crop_bottom = self.crop_black(src_file, tile_width, tile_height, cropped_file)
+        with open(crop_coord, 'w') as out:
+          csv_out = csv.writer(out)
+          csv_out.writerow([crop_left, crop_right, crop_top, crop_bottom])
 
     # throw annotations out if they fall outside the crop
     if tlx > tile_width - crop_right or tlx < crop_left or tly > tile_height - crop_bottom or tly < crop_top:
@@ -461,8 +473,7 @@ class Annotation():
     center_x -= crop_left
     center_y -= crop_top
 
-    if metadata.rotate:
-      self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
+    self.show_annotation('cropped', annotation.group, cropped_file, brx, bry, tlx, tly)
     annotation_new = annotation._replace(x=center_x, y=center_y)
 
     tile_width2 = int(tile_width/2)
@@ -474,11 +485,11 @@ class Annotation():
     # calculate what sub image index the annotations should fall into
     subindex = bin_y2*2 + bin_x2
     rescaled_file = '{0}/{1}_{2:02}_{3:02}.png'.format(conf.PNG_DIR, key, index, subindex)
+    w = tile_width2
+    h = tile_height2
+    tlxx = bin_x2*w
+    tlyy = bin_y2*h
     if not os.path.exists(rescaled_file):
-      w = tile_width2
-      h = tile_height2
-      tlxx = bin_x2*w
-      tlyy = bin_y2*h
       os.system('/usr/local/bin/convert "{0}" -crop {1}x{2}+{3}+{4} +repage -scale {5}x{6}\! "{7}"'.format(
         cropped_file, w, h, tlxx, tlyy, conf.TARGET_TILE_WIDTH, conf.TARGET_TILE_HEIGHT, rescaled_file))
 
@@ -517,13 +528,7 @@ class Annotation():
     if tlx2 == brx2 or tly2 == bry2:
       raise Exception("Object too small. Annotation {0}".format(annotation.filename))
 
-    if os.path.exists(rescaled_file):
-      if metadata.rotate:
-        annotated_file = '{0}/{1}_{2:02}_{3:02}_annotated_r.png'.format(conf.PNG_DIR, key, index, subindex)
-      else:
-        annotated_file = '{0}/{1}_{2:02}_{3:02}_annotated.png'.format(conf.PNG_DIR, key, index, subindex)
-      if metadata.rotate:
-        self.show_annotation('final', annotation.group, rescaled_file, brx2, bry2, tlx2, tly2, True, annotated_file)
+    self.show_annotation('final', annotation.group, rescaled_file, brx2, bry2, tlx2, tly2)
     return obj, rescaled_file
 
   def scale(self, cropped_file, rescaled_file):
