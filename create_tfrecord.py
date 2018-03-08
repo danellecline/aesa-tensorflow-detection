@@ -199,6 +199,7 @@ def main(_):
 
       except Exception as ex:
         print(ex)
+        continue
 
   writer.close()
   ttl_objs = 0
