@@ -24,12 +24,11 @@ from annotation import Annotation
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tensorflow_models', 'research'))
 
-from PIL import Image
 from dicttoxml import dicttoxml
 from lxml import etree
 from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
-
+import image_utils
 
 if __name__ == '__main__':
 
@@ -67,6 +66,10 @@ if __name__ == '__main__':
                 with open(xml_file, 'w') as f2:
                     f2.write(pretty_xml_as_string)
                 f2.close()
+
+                # optional - save annotated file
+                png_file = os.path.join(conf.PNG_DIR, '{0}.png'.format(key))
+                image_utils.write_annotation(data, png_file, conf.ANNOTATION_DIR)
 
             except Exception as ex:
               print('Exception {0}'.format(ex))

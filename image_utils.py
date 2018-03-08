@@ -86,3 +86,26 @@ def get_dims(image):
     return height, width
 
   raise Exception('Cannot find height/width for image {0}'.format(image))
+
+
+def write_annotation(annot_dict, image_file, out_dir):
+    '''
+     Simple utility to save the annotation box overlayed on an image
+    :param annot_dict:
+    :param image_file:
+    :param out_dir:
+    :return:
+    '''
+    img = cv2.imread(image_file)
+    filename = annot_dict['filename']
+    for obj in annot_dict['object']:
+      name = obj['name']
+      tlx = int(obj['bndbox']['xmin'])
+      tly = int(obj['bndbox']['ymin'])
+      brx = int(obj['bndbox']['xmax'])
+      bry = int(obj['bndbox']['ymax'])
+      cv2.rectangle(img, (tlx, tly), (brx, bry), (0, 255, 0), 3)
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(img, name, (tlx, tly), font, 1, (255, 255, 255), 2)
+    root, ext = os.path.splitext(filename)
+    cv2.imwrite(os.path.join(out_dir, '{0}_a{1}'.format(root, ext)), img)
