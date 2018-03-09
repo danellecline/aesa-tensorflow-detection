@@ -1,395 +1,395 @@
-ITEM
+item
 {
- ID:1
-  NAME: ANNELIDA
+ id:1
+  name: ANNELIDA
 }
-ITEM
+item
 {
- ID:2
-  NAME: AMPERIMA
+ id:2
+  name: AMPERIMA
 }
-ITEM
+item
 {
- ID:3
-  NAME: ASTEROID1
+ id:3
+  name: ASTEROID1
 }
-ITEM
+item
 {
- ID:4
-  NAME: ASTEROID2
+ id:4
+  name: ASTEROID2
 }
-ITEM
+item
 {
- ID:5
-  NAME: ASTEROID3
+ id:5
+  name: ASTEROID3
 }
-ITEM
+item
 {
- ID:6
-  NAME: ASTEROID4
+ id:6
+  name: ASTEROID4
 }
-ITEM
+item
 {
- ID:7
-  NAME: ASTEROID5
+ id:7
+  name: ASTEROID5
 }
-ITEM
+item
 {
- ID:8
-  NAME: BENTHODYTES
+ id:8
+  name: BENTHODYTES
 }
-ITEM
+item
 {
- ID:9
-  NAME: BENTHODYTESLINGUA
+ id:9
+  name: BENTHODYTESLINGUA
 }
-ITEM
+item
 {
- ID:10
-  NAME: BENTHOTHURIA
+ id:10
+  name: BENTHOTHURIA
 }
-ITEM
+item
 {
- ID:11
-  NAME: BENTHOTHURIAFUNEBRIS
+ id:11
+  name: BENTHOTHURIAFUNEBRIS
 }
-ITEM
+item
 {
- ID:12
-  NAME: BRISINGID1
+ id:12
+  name: BRISINGID1
 }
-ITEM
+item
 {
- ID:13
-  NAME: BRISINGID2
+ id:13
+  name: BRISINGID2
 }
-ITEM
+item
 {
- ID:14
-  NAME: CNIDARIA
+ id:14
+  name: CNIDARIA
 }
-ITEM
+item
 {
- ID:15
-  NAME: CEPHALOPODA
+ id:15
+  name: CEPHALOPODA
 }
-ITEM
+item
 {
- ID:16
-  NAME: CIRRIPEDIA
+ id:16
+  name: CIRRIPEDIA
 }
-ITEM
+item
 {
- ID:17
-  NAME: CNIDARIA1
+ id:17
+  name: CNIDARIA1
 }
-ITEM
+item
 {
- ID:18
-  NAME: CNIDARIA10
+ id:18
+  name: CNIDARIA10
 }
-ITEM
+item
 {
- ID:19
-  NAME: CNIDARIA11
+ id:19
+  name: CNIDARIA11
 }
-ITEM
+item
 {
- ID:20
-  NAME: CNIDARIA12
+ id:20
+  name: CNIDARIA12
 }
-ITEM
+item
 {
- ID:21
-  NAME: CNIDARIA13
+ id:21
+  name: CNIDARIA13
 }
-ITEM
+item
 {
- ID:22
-  NAME: CNIDARIA14
+ id:22
+  name: CNIDARIA14
 }
-ITEM
+item
 {
- ID:23
-  NAME: CNIDARIA15
+ id:23
+  name: CNIDARIA15
 }
-ITEM
+item
 {
- ID:24
-  NAME: CNIDARIA16
+ id:24
+  name: CNIDARIA16
 }
-ITEM
+item
 {
- ID:25
-  NAME: CNIDARIA17
+ id:25
+  name: CNIDARIA17
 }
-ITEM
+item
 {
- ID:26
-  NAME: CNIDARIA18
+ id:26
+  name: CNIDARIA18
 }
-ITEM
+item
 {
- ID:27
-  NAME: CNIDARIA19
+ id:27
+  name: CNIDARIA19
 }
-ITEM
+item
 {
- ID:28
-  NAME: CNIDARIA2
+ id:28
+  name: CNIDARIA2
 }
-ITEM
+item
 {
- ID:29
-  NAME: CNIDARIA20
+ id:29
+  name: CNIDARIA20
 }
-ITEM
+item
 {
- ID:30
-  NAME: CNIDARIA3
+ id:30
+  name: CNIDARIA3
 }
-ITEM
+item
 {
- ID:31
-  NAME: CNIDARIA4
+ id:31
+  name: CNIDARIA4
 }
-ITEM
+item
 {
- ID:32
-  NAME: CNIDARIA5
+ id:32
+  name: CNIDARIA5
 }
-ITEM
+item
 {
- ID:33
-  NAME: CNIDARIA7
+ id:33
+  name: CNIDARIA7
 }
-ITEM
+item
 {
- ID:34
-  NAME: CNIDARIA8
+ id:34
+  name: CNIDARIA8
 }
-ITEM
+item
 {
- ID:35
-  NAME: CNIDARIA9
+ id:35
+  name: CNIDARIA9
 }
-ITEM
+item
 {
- ID:36
-  NAME: CRINOID1
+ id:36
+  name: CRINOID1
 }
-ITEM
+item
 {
- ID:37
-  NAME: CRINOID2
+ id:37
+  name: CRINOID2
 }
-ITEM
+item
 {
- ID:38
-  NAME: DEIMA
+ id:38
+  name: DEIMA
 }
-ITEM
+item
 {
- ID:39
-  NAME: ECHIURA
+ id:39
+  name: ECHIURA
 }
-ITEM
+item
 {
- ID:40
-  NAME: ENYPNIASTES EXIMIA
+ id:40
+  name: ENYPNIASTES EXIMIA
 }
-ITEM
+item
 {
- ID:41
-  NAME: HOLOTHURIAN
+ id:41
+  name: HOLOTHURIAN
 }
-ITEM
+item
 {
- ID:42
-  NAME: HOLOTHUROID3
+ id:42
+  name: HOLOTHUROID3
 }
-ITEM
+item
 {
- ID:43
-  NAME: HOLOTHUROID4
+ id:43
+  name: HOLOTHUROID4
 }
-ITEM
+item
 {
- ID:44
-  NAME: HOLOTHUROID5
+ id:44
+  name: HOLOTHUROID5
 }
-ITEM
+item
 {
- ID:45
-  NAME: HOLOTHUROID6
+ id:45
+  name: HOLOTHUROID6
 }
-ITEM
+item
 {
- ID:46
-  NAME: MOLLUSCA
+ id:46
+  name: MOLLUSCA
 }
-ITEM
+item
 {
- ID:47
-  NAME: MESOTHURIA
+ id:47
+  name: MESOTHURIA
 }
-ITEM
+item
 {
- ID:48
-  NAME: MUNNOPSIDA
+ id:48
+  name: MUNNOPSIDA
 }
-ITEM
+item
 {
- ID:49
-  NAME: ONEIROPHANTA
+ id:49
+  name: ONEIROPHANTA
 }
-ITEM
+item
 {
- ID:50
-  NAME: OPHIUROID DISKD
+ id:50
+  name: OPHIUROID DISKD
 }
-ITEM
+item
 {
- ID:51
-  NAME: OPHIUROID R
+ id:51
+  name: OPHIUROID R
 }
-ITEM
+item
 {
- ID:52
-  NAME: OPHIUROIDEA R
+ id:52
+  name: OPHIUROIDEA R
 }
-ITEM
+item
 {
- ID:53
-  NAME: PORIFERA
+ id:53
+  name: PORIFERA
 }
-ITEM
+item
 {
- ID:54
-  NAME: PAELOPATIDES
+ id:54
+  name: PAELOPATIDES
 }
-ITEM
+item
 {
- ID:55
-  NAME: PARORIZA
+ id:55
+  name: PARORIZA
 }
-ITEM
+item
 {
- ID:56
-  NAME: PENIAGONE
+ id:56
+  name: PENIAGONE
 }
-ITEM
+item
 {
- ID:57
-  NAME: PENIAGONESP2
+ id:57
+  name: PENIAGONESP2
 }
-ITEM
+item
 {
- ID:58
-  NAME: PLATYCTENIDA
+ id:58
+  name: PLATYCTENIDA
 }
-ITEM
+item
 {
- ID:59
-  NAME: POLYCHAETE1
+ id:59
+  name: POLYCHAETE1
 }
-ITEM
+item
 {
- ID:60
-  NAME: POLYNOID1
+ id:60
+  name: POLYNOID1
 }
-ITEM
+item
 {
- ID:61
-  NAME: POLYNOID2
+ id:61
+  name: POLYNOID2
 }
-ITEM
+item
 {
- ID:62
-  NAME: PSEUDOSTICHOPUSAEMULATUS
+ id:62
+  name: PSEUDOSTICHOPUSAEMULATUS
 }
-ITEM
+item
 {
- ID:63
-  NAME: PSEUDOSTICHOPUSVILLOSUS
+ id:63
+  name: PSEUDOSTICHOPUSVILLOSUS
 }
-ITEM
+item
 {
- ID:64
-  NAME: PSYCHROPOTES
+ id:64
+  name: PSYCHROPOTES
 }
-ITEM
+item
 {
- ID:65
-  NAME: PYCNOGONIDA
+ id:65
+  name: PYCNOGONIDA
 }
-ITEM
+item
 {
- ID:66
-  NAME: SQUAT LOBSTER
+ id:66
+  name: SQUAT LOBSTER
 }
-ITEM
+item
 {
- ID:67
-  NAME: STALKED TUNICATE
+ id:67
+  name: STALKED TUNICATE
 }
-ITEM
+item
 {
- ID:68
-  NAME: SYNALLACTID1
+ id:68
+  name: SYNALLACTID1
 }
-ITEM
+item
 {
- ID:69
-  NAME: TUNICATA
+ id:69
+  name: TUNICATA
 }
-ITEM
+item
 {
- ID:70
-  NAME: TUNICATA2
+ id:70
+  name: TUNICATA2
 }
-ITEM
+item
 {
- ID:71
-  NAME: UNKNOWN
+ id:71
+  name: UNKNOWN
 }
-ITEM
+item
 {
- ID:72
-  NAME: UMBELLULA
+ id:72
+  name: UMBELLULA
 }
-ITEM
+item
 {
- ID:73
-  NAME: UMBELLULA1
+ id:73
+  name: UMBELLULA1
 }
-ITEM
+item
 {
- ID:74
-  NAME: UMBELLULA3
+ id:74
+  name: UMBELLULA3
 }
-ITEM
+item
 {
- ID:75
-  NAME: UNKNOWNAG
+ id:75
+  name: UNKNOWNAG
 }
-ITEM
+item
 {
- ID:76
-  NAME: UNKNOWNAH
+ id:76
+  name: UNKNOWNAH
 }
-ITEM
+item
 {
- ID:77
-  NAME: UNKNOWNC
+ id:77
+  name: UNKNOWNC
 }
-ITEM
+item
 {
- ID:78
-  NAME: UNKNOWNX
+ id:78
+  name: UNKNOWNX
 }
-ITEM
+item
 {
- ID:79
-  NAME: UNKNOWNZ
+ id:79
+  name: UNKNOWNZ
 }
