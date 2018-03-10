@@ -1,395 +1,365 @@
 item
 {
- id:1
-  name: ANNELIDA
-}
-item
-{
- id:2
-  name: AMPERIMA
-}
-item
-{
- id:3
-  name: ASTEROID1
-}
-item
-{
- id:4
-  name: ASTEROID2
-}
-item
-{
- id:5
-  name: ASTEROID3
-}
-item
-{
- id:6
-  name: ASTEROID4
-}
-item
-{
- id:7
-  name: ASTEROID5
-}
-item
-{
- id:8
-  name: BENTHODYTES
-}
-item
-{
- id:9
-  name: BENTHODYTESLINGUA
-}
-item
-{
- id:10
-  name: BENTHOTHURIA
-}
-item
-{
- id:11
-  name: BENTHOTHURIAFUNEBRIS
-}
-item
-{
- id:12
-  name: BRISINGID1
-}
-item
-{
- id:13
-  name: BRISINGID2
-}
-item
-{
- id:14
-  name: CNIDARIA
-}
-item
-{
- id:15
-  name: CEPHALOPODA
-}
-item
-{
- id:16
-  name: CIRRIPEDIA
-}
-item
-{
- id:17
-  name: CNIDARIA1
-}
-item
-{
- id:18
-  name: CNIDARIA10
-}
-item
-{
- id:19
-  name: CNIDARIA11
-}
-item
-{
- id:20
-  name: CNIDARIA12
-}
-item
-{
- id:21
-  name: CNIDARIA13
-}
-item
-{
- id:22
-  name: CNIDARIA14
-}
-item
-{
- id:23
-  name: CNIDARIA15
-}
-item
-{
- id:24
-  name: CNIDARIA16
-}
-item
-{
- id:25
-  name: CNIDARIA17
-}
-item
-{
- id:26
-  name: CNIDARIA18
-}
-item
-{
- id:27
-  name: CNIDARIA19
-}
-item
-{
- id:28
-  name: CNIDARIA2
-}
-item
-{
- id:29
-  name: CNIDARIA20
-}
-item
-{
- id:30
-  name: CNIDARIA3
-}
-item
-{
- id:31
-  name: CNIDARIA4
-}
-item
-{
- id:32
-  name: CNIDARIA5
-}
-item
-{
- id:33
-  name: CNIDARIA7
-}
-item
-{
- id:34
-  name: CNIDARIA8
-}
-item
-{
- id:35
-  name: CNIDARIA9
-}
-item
-{
- id:36
-  name: CRINOID1
-}
-item
-{
- id:37
-  name: CRINOID2
-}
-item
-{
- id:38
-  name: DEIMA
-}
-item
-{
- id:39
-  name: ECHIURA
-}
-item
-{
- id:40
-  name: ENYPNIASTES EXIMIA
-}
-item
-{
- id:41
-  name: HOLOTHURIAN
-}
-item
-{
- id:42
-  name: HOLOTHUROID3
-}
-item
-{
  id:43
-  name: HOLOTHUROID4
-}
-item
-{
- id:44
-  name: HOLOTHUROID5
-}
-item
-{
- id:45
-  name: HOLOTHUROID6
-}
-item
-{
- id:46
-  name: MOLLUSCA
-}
-item
-{
- id:47
-  name: MESOTHURIA
-}
-item
-{
- id:48
-  name: MUNNOPSIDA
-}
-item
-{
- id:49
-  name: ONEIROPHANTA
-}
-item
-{
- id:50
-  name: OPHIUROID DISKD
-}
-item
-{
- id:51
-  name: OPHIUROID R
-}
-item
-{
- id:52
-  name: OPHIUROIDEA R
-}
-item
-{
- id:53
-  name: PORIFERA
-}
-item
-{
- id:54
-  name: PAELOPATIDES
-}
-item
-{
- id:55
-  name: PARORIZA
-}
-item
-{
- id:56
-  name: PENIAGONE
-}
-item
-{
- id:57
-  name: PENIAGONESP2
-}
-item
-{
- id:58
-  name: PLATYCTENIDA
-}
-item
-{
- id:59
-  name: POLYCHAETE1
-}
-item
-{
- id:60
-  name: POLYNOID1
-}
-item
-{
- id:61
-  name: POLYNOID2
-}
-item
-{
- id:62
-  name: PSEUDOSTICHOPUSAEMULATUS
-}
-item
-{
- id:63
-  name: PSEUDOSTICHOPUSVILLOSUS
-}
-item
-{
- id:64
-  name: PSYCHROPOTES
-}
-item
-{
- id:65
-  name: PYCNOGONIDA
-}
-item
-{
- id:66
-  name: SQUAT LOBSTER
-}
-item
-{
- id:67
-  name: STALKED TUNICATE
-}
-item
-{
- id:68
-  name: SYNALLACTID1
-}
-item
-{
- id:69
-  name: TUNICATA
-}
-item
-{
- id:70
-  name: TUNICATA2
-}
-item
-{
- id:71
-  name: UNKNOWN
+  name: 'HOLOTHUROID6'
 }
 item
 {
  id:72
-  name: UMBELLULA
+  name: 'UNKNOWNX'
+}
+item
+{
+ id:31
+  name: 'CNIDARIA5'
 }
 item
 {
  id:73
-  name: UMBELLULA1
+  name: 'UNKNOWNZ'
 }
 item
 {
- id:74
-  name: UMBELLULA3
+ id:48
+  name: 'OPHIUROIDEA'
 }
 item
 {
- id:75
-  name: UNKNOWNAG
+ id:70
+  name: 'UNKNOWNAH'
 }
 item
 {
- id:76
-  name: UNKNOWNAH
+ id:4
+  name: 'ASTEROID2'
 }
 item
 {
- id:77
-  name: UNKNOWNC
+ id:45
+  name: 'MESOTHURIA'
 }
 item
 {
- id:78
-  name: UNKNOWNX
+ id:69
+  name: 'UNKNOWNAG'
 }
 item
 {
- id:79
-  name: UNKNOWNZ
+ id:64
+  name: 'SYNALLACTID1'
+}
+item
+{
+ id:10
+  name: 'BENTHOTHURIA'
+}
+item
+{
+ id:8
+  name: 'BENTHODYTES'
+}
+item
+{
+ id:18
+  name: 'CNIDARIA11'
+}
+item
+{
+ id:27
+  name: 'CNIDARIA2'
+}
+item
+{
+ id:53
+  name: 'PENIAGONESP2'
+}
+item
+{
+ id:34
+  name: 'CNIDARIA9'
+}
+item
+{
+ id:50
+  name: 'PAELOPATIDES'
+}
+item
+{
+ id:17
+  name: 'CNIDARIA10'
+}
+item
+{
+ id:1
+  name: 'ANNELIDA'
+}
+item
+{
+ id:32
+  name: 'CNIDARIA7'
+}
+item
+{
+ id:14
+  name: 'CEPHALOPODA'
+}
+item
+{
+ id:41
+  name: 'HOLOTHUROID4'
+}
+item
+{
+ id:54
+  name: 'PLATYCTENIDA'
+}
+item
+{
+ id:29
+  name: 'CNIDARIA3'
+}
+item
+{
+ id:66
+  name: 'UMBELLULA'
+}
+item
+{
+ id:20
+  name: 'CNIDARIA13'
+}
+item
+{
+ id:60
+  name: 'PSYCHROPOTESLONGICAUDA'
+}
+item
+{
+ id:25
+  name: 'CNIDARIA18'
+}
+item
+{
+ id:71
+  name: 'UNKNOWNC'
+}
+item
+{
+ id:15
+  name: 'CIRRIPEDIA'
+}
+item
+{
+ id:57
+  name: 'POLYNOID2'
+}
+item
+{
+ id:62
+  name: 'SQUATLOBSTER'
+}
+item
+{
+ id:46
+  name: 'MUNNOPSIDA'
+}
+item
+{
+ id:19
+  name: 'CNIDARIA12'
+}
+item
+{
+ id:55
+  name: 'POLYCHAETE1'
+}
+item
+{
+ id:23
+  name: 'CNIDARIA16'
+}
+item
+{
+ id:36
+  name: 'CRINOID2'
+}
+item
+{
+ id:28
+  name: 'CNIDARIA20'
+}
+item
+{
+ id:13
+  name: 'BRISINGID2'
+}
+item
+{
+ id:67
+  name: 'UMBELLULA1'
+}
+item
+{
+ id:40
+  name: 'HOLOTHUROID3'
+}
+item
+{
+ id:16
+  name: 'CNIDARIA1'
+}
+item
+{
+ id:59
+  name: 'PSEUDOSTICHOPUSVILLOSUS'
+}
+item
+{
+ id:5
+  name: 'ASTEROID3'
+}
+item
+{
+ id:42
+  name: 'HOLOTHUROID5'
+}
+item
+{
+ id:26
+  name: 'CNIDARIA19'
+}
+item
+{
+ id:11
+  name: 'BENTHOTHURIAFUNEBRIS'
+}
+item
+{
+ id:6
+  name: 'ASTEROID4'
+}
+item
+{
+ id:3
+  name: 'ASTEROID1'
+}
+item
+{
+ id:37
+  name: 'DEIMA'
+}
+item
+{
+ id:58
+  name: 'PSEUDOSTICHOPUSAEMULATUS'
+}
+item
+{
+ id:33
+  name: 'CNIDARIA8'
+}
+item
+{
+ id:7
+  name: 'ASTEROID5'
+}
+item
+{
+ id:68
+  name: 'UMBELLULA3'
+}
+item
+{
+ id:51
+  name: 'PARORIZA'
+}
+item
+{
+ id:61
+  name: 'PYCNOGONIDA'
+}
+item
+{
+ id:52
+  name: 'PENIAGONE'
+}
+item
+{
+ id:21
+  name: 'CNIDARIA14'
+}
+item
+{
+ id:24
+  name: 'CNIDARIA17'
+}
+item
+{
+ id:63
+  name: 'STALKEDTUNICATE'
+}
+item
+{
+ id:47
+  name: 'ONEIROPHANTA'
+}
+item
+{
+ id:39
+  name: 'ENYPNIASTESEXIMIA'
+}
+item
+{
+ id:2
+  name: 'AMPERIMA'
+}
+item
+{
+ id:12
+  name: 'BRISINGID1'
+}
+item
+{
+ id:65
+  name: 'TUNICATA2'
+}
+item
+{
+ id:9
+  name: 'BENTHODYTESLINGUA'
+}
+item
+{
+ id:35
+  name: 'CRINOID1'
+}
+item
+{
+ id:22
+  name: 'CNIDARIA15'
+}
+item
+{
+ id:49
+  name: 'PORIFERA'
+}
+item
+{
+ id:56
+  name: 'POLYNOID1'
+}
+item
+{
+ id:30
+  name: 'CNIDARIA4'
+}
+item
+{
+ id:44
+  name: 'MOLLUSCA'
+}
+item
+{
+ id:38
+  name: 'ECHIURA'
 }
