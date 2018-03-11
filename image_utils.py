@@ -109,3 +109,24 @@ def write_annotation(annot_dict, image_file, out_dir):
       cv2.putText(img, name, (tlx, tly), font, 1, (255, 255, 255), 2)
     root, ext = os.path.splitext(filename)
     cv2.imwrite(os.path.join(out_dir, '{0}_a{1}'.format(root, ext)), img)
+
+def calculate_mean(files):
+  import numpy as np
+  means = []
+  for f in files:
+      means.append(np.mean(cv2.imread(f), axis=(0,1)))
+
+  return (np.mean(means, axis=(0)))
+
+
+def main(_):
+  import conf
+  import glob
+  collections = ['M535455_500x500_by_group_0pad', 'M56_500x500_by_group_0pad']
+  all_files = []
+  for c in collections:
+      dir = os.path.join(conf.DATA_DIR, c)
+      files = glob.iglob(dir + "**/*.png", recursive=True)
+      all_files.append(files)
+
+  calculate_mean(all_files)
