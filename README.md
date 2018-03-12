@@ -175,6 +175,10 @@ TEST
 * ASTEROIDEA 26
 Done. Found 14531 examples in test set
 
+
+
+Done. Found 16796 examples in test set
+
 ## Developer Notes
 BUG in 
 tensorflow_models/research/object_detection/inference/detection_inference.py
@@ -211,11 +215,11 @@ tensorflow_models/research/object_detection/inference/infer_detections.py
 
 # Developer notes
 
-* Pre processing options [https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
-* Install your own dataset [https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md)
-* Install TensorFlow Object Detection API [dhttps://github.com/tensorflow/models/blob/master/object_detection/g3doc/installation.m](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/installation.md) 
+* Pre processing options [https://github.com/tensorflow/models/blob/master/research/object_detection/protos/preprocessor.proto](https://github.com/tensorflow/models/blob/master/object_detection/protos/preprocessor.proto) 
+* Install your own dataset [https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/using_your_own_dataset.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/using_your_own_dataset.md)
+* Install TensorFlow Object Detection API [dhttps://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.m](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/installation.md) 
 * Running in the cloud [https://cloud.google.com/blog/big-data/2017/09/performing-prediction-with-tensorflow-object-detection-models-on-google-cloud-machine-learning-engine](https://cloud.google.com/blog/big-data/2017/09/performing-prediction-with-tensorflow-object-detection-models-on-google-cloud-machine-learning-engine)
-* Configuring option detection pipeline [https://github.com/tensorflow/models/blob/master/object_detection/g3doc/configuring_jobs.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/configuring_jobs.md)
+* Configuring option detection pipeline [https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/configuring_jobs.md](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/configuring_jobs.md)
 * To see GPU usage on DevBox 
     $ watch nvidia-smi 
 * To run train/eval on different GPUS, add to train/eval.py
