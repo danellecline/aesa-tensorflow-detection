@@ -14,14 +14,42 @@ Creates a label map for usin TF from a cvs file
 import pandas as pd
 import os
 
+def correct(category):
+  if 'Ophiuroid' in category:
+    return 'Ophiuroidea'
+  if 'Tunicate2' in category:
+    return 'Tunicata2'
+  if 'Polycheate1' in category:
+    return 'Polychaeta1'
+  return category
+ 
 def convert(df, groupby):
   index = 1
   grouped = df.groupby(groupby)
   map_out = os.path.join(os.getcwd(), 'data', 'aesa_{0}_map.pbtxt'.format(groupby.lower()))
+  items = {}
+  for name, group in grouped:
+    correct_name = name.strip().replace(" ", "")
+    correct_key = correct(correct_name)
+    correct_key = correct_key.upper()
+    g = group.index[0]
+    group_key = df.iloc[g].Group.upper()
+    print('correct_name:{0} correct_key:{1} group_key:{2}'.format(correct_name, correct_key, group_key))
+    if group_key == correct_key and groupby == 'Category' and correct_key != 'OPHIUROIDEA' and correct_key != 'MOLLUSCA': 
+    	print('Skipping over category matching group{0}'.format(correct_key))
+    	continue 
+
+    if groupby == 'Group' and correct_key == 'UNKNOWN':
+    	print('Skipping over unknown category')
+    	continue 
+
+    if correct_key not in items.keys():
+    	items[correct_key] = 1
+
   with open(map_out, 'w') as out:
-    for name, group in grouped:
-    	str = 'item\n{{\n id:{0}\n  name: {1}\n}}\n'.format(index, name.upper())
-    	out.write(str.upper())
+    for key, value in sorted(items.items()):
+    	item = "item\n{{\n id:{0}\n  name: '{1}'\n}}\n".format(index, key)
+    	out.write(item)
     	index += 1
 
 if __name__ == '__main__':

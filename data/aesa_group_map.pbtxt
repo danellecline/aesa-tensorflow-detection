@@ -1,15 +1,55 @@
 item
 {
  id:1
-  name: 'CNIDARIA'
+  name: 'ARTHROPODA'
 }
 item
 {
  id:2
-  name: 'OPHIUROIDEA'
+  name: 'ASTEROIDEA'
 }
 item
 {
  id:3
+  name: 'CNIDARIA'
+}
+item
+{
+ id:4
+  name: 'CRINOIDEA'
+}
+item
+{
+ id:5
+  name: 'CTENOPHORA'
+}
+item
+{
+ id:6
+  name: 'HOLOTHUROIDEA'
+}
+item
+{
+ id:7
+  name: 'MOLLUSCA'
+}
+item
+{
+ id:8
+  name: 'OPHIUROIDEA'
+}
+item
+{
+ id:9
   name: 'POLYCHAETA'
+}
+item
+{
+ id:10
+  name: 'PORIFERA'
+}
+item
+{
+ id:11
+  name: 'TUNICATA'
 }
