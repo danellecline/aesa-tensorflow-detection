@@ -94,7 +94,7 @@ python-debian===0.1.21-nmu2ubuntu2
 python-gflags==1.5.1
 pytz==2012rc0
 pyxdg==0.25
-PyYAML==3.10
+PyYAML==5.4
 pyzmq==16.0.0
 reportlab==3.0
 requests==2.2.1
