@@ -96,7 +96,7 @@ pytz==2012rc0
 pyxdg==0.25
 PyYAML==3.10
 pyzmq==16.0.0
-reportlab==3.0
+reportlab==3.5.55
 requests==2.2.1
 scikit-image==0.9.3
 scikit-learn==0.14.1
