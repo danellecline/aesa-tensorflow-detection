@@ -32,7 +32,7 @@ greenlet==0.4.2
 gunicorn==17.5
 gyp==0.1
 h5py==2.2.1
-html5lib==0.999
+html5lib==0.999999999
 httplib2==0.8
 ipykernel==4.5.0
 ipython==5.1.0
